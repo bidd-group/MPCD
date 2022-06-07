@@ -1,4 +1,4 @@
-# BDMPC
+# MPCD
 ------
 ### Benchmark datasets of molecular property cliff  
 
