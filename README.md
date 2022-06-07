@@ -3,7 +3,7 @@
 
 Benchmark datasets of molecular property cliff  
 
-* 1.Low-sample size and narrow-scaffold inhibitors: LSSNS
+## * 1.Low-sample size and narrow-scaffold inhibitors: LSSNS
 
 
 
@@ -27,9 +27,9 @@ Benchmark datasets of molecular property cliff
 
 
 
-* 2.Higher-sample size and mixed-scaffold inhibitors:HSSMS
+## * 2.Higher-sample size and mixed-scaffold inhibitors:HSSMS
 
 
 
 
-* 3.Other property tasks: solublity; freesolve; QM9; ADMET
+## * 3.Other property tasks: solublity; freesolve; QM9; ADMET
