@@ -1,3 +1,8 @@
+#[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6474351.svg)](https://doi.org/10.5281/zenodo.6474351)
+
+<a href="url"><img src="./misc/logo_MPCD.png" align="left" height="170" width="130" ></a>
+
+
 # MPCD
 ### Benchmark datasets of molecular property cliff  
 
