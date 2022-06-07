@@ -6,7 +6,7 @@
 ### Benchmark datasets of molecular property cliff  
 
 ------
-## 1.Low-sample size and narrow-scaffold inhibitors: LSSNS
+## 1.Low-sample size and narrow-scaffold inhibitors: ![LSSNS](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/LSSNS.html)
 
 
 
