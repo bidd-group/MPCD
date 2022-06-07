@@ -2,7 +2,7 @@
 
 Benchmark datasets of molecular property cliff  
 
-* 1.Low-sample size and narrow-scaffold inhibitors: LSSNS
+
 
 +----+-----------+---------------------------------------------+------------------+--------+------------------------------------------------------------+
 |    | dataset   | target                                      | target_type      |   size | reference                                                  |
@@ -36,10 +36,8 @@ Benchmark datasets of molecular property cliff
 | 13 | ido1      | Indoleamine 2,3-dioxygenase                 | Other Enzyme     |     78 | CHEMBL4364294                                              |
 +----+-----------+---------------------------------------------+------------------+--------+------------------------------------------------------------+
 
+* 1.Low-sample size and narrow-scaffold inhibitors: LSSNS
 
 * 2.Higher-sample size and mixed-scaffold inhibitors:HSSMS
-
-
-
 
 * 3.Other property tasks: solublity; freesolve; QM9; ADMET
