@@ -1,12 +1,3 @@
-# BDMPC
-------
-### Benchmark datasets of molecular property cliff  
-
-
-## 1.Low-sample size and narrow-scaffold inhibitors: LSSNS
-
-
-
 |    | dataset   | target                                      | target_type      |   size | reference                                                  |
 |---:|:----------|:--------------------------------------------|:-----------------|-------:|:-----------------------------------------------------------|
 |  0 | ur2       | Urotensin II receptor                       | GPCR             |     60 | CHEMBL1146083                                              |
@@ -23,11 +14,3 @@
 | 11 | pkci      | Protein kinase C iota                       | Kinase           |     48 | CHEMBL4184321                                              |
 | 12 | eaat3     | Excitatory amino acid transporter 3         | Transporter      |     59 | CHEMBL4145652; CHEMBL3860066; CHEMBL4725471; CHEMBL1155081 |
 | 13 | ido1      | Indoleamine 2,3-dioxygenase                 | Other Enzyme     |     78 | CHEMBL4364294                                              |
-
-
-## 2.Higher-sample size and mixed-scaffold inhibitors:HSSMS
-
-
-
-
-## 3.Other property tasks: solublity; freesolve; QM9; ADMET
