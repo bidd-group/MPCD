@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="data:image/vnd.microsoft.icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA25g0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAERAAAAAAAAAREAAAAAAAABEQAAAAAAAAERAAAAAAAAARERERAAAAABEREREAAAAAEREREQAAAAAREAAAAAAAABEQAAAAAAAAEREREQAAAAARERERAAAAABEREREAAAAAAAAAAAAAAAAAAAAAAAD//wAA//8AAPH/AADx/wAA8f8AAPH/AADwDwAA8A8AAPAPAADx/wAA8f8AAPAPAADwDwAA8A8AAP//AAD//wAA" />
+    <title></title>
+    <script src="https://unpkg.com/lore-engine@1.1.10/dist/lore.min.js"></script>
+    <script src="https://unpkg.com/smiles-drawer@1.2.0/dist/smiles-drawer.min.js"></script>
+    <link 
+      rel="stylesheet" 
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.css" 
+      integrity="sha256-piqEf7Ap7CMps8krDQsSOTZgF+MU/0MPyPW2enj5I40=" 
+      crossorigin="anonymous" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Open+Sans:400,600"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+        height: 100%;
+        user-select: none;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      #lore {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+      }
+
+      #title {
+        position: absolute;
+        z-index: 9999;
+        pointer-events: none;
+        text-height: 1;
+        opacity: 0.0;
+        transition: opacity 0.5s ease-in;
+        
+          padding-bottom: 20px;
+        
+          font-size: 1.0em;
+        
+          color: #888888;
+        
+          font-family: 'Open Sans';
+        
+      }
+
+      #x-axis {
+        position: absolute;
+        z-index: 9999;
+        pointer-events: none;
+        text-height: 1;
+        opacity: 0.0;
+        transition: opacity 0.5s ease-in;
+        
+          padding-top: 20px;
+        
+          font-size: 0.7em;
+        
+          color: #888888;
+        
+          font-family: 'Open Sans';
+        
+      }
+
+      #y-axis {
+        position: absolute;
+        z-index: 9999;
+        pointer-events: none;
+        text-height: 1;
+        transition: opacity 0.5s ease-in;
+        
+          padding-bottom: 20px;
+        
+          font-size: 0.7em;
+        
+          color: #888888;
+        
+          font-family: 'Open Sans';
+        
+          transform: rotate(-90deg);
+        
+      }
+
+      #tip {
+        position: absolute;
+        z-index: 9999;
+        padding: 5px;
+        font-family: 'Open Sans';
+        background-color: rgba(255, 255, 255, 1.0);
+        border-radius: 2px;
+        border-left: 5px solid #000;
+        pointer-events: none;
+        opacity: 0.0;
+        transition: opacity 0.1s ease-out;
+        filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 1.0));
+      }
+
+      #tip.show {
+        opacity: 1.0;
+        transition: opacity 0.1s ease-out;
+      }
+
+      #tip-text {
+        position: relative;
+        max-width: 250px;
+        font-size: 0.8em;
+        font-weight: bold;
+        white-space: normal;
+        line-break: normal;
+      }
+
+      #hover-indicator {
+        display: none;
+        position: absolute;
+        z-index: 999;
+        border: 1px solid #fff;
+        background-color: rgba(255, 255, 255, 0.25);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+
+      #hover-indicator.show {
+        display: block !important
+      }
+
+      .selected-indicator {
+        position: absolute;
+        z-index: 999;
+        pointer-events: none;
+      }
+
+      .selected-indicator .crosshair-x {
+        position: absolute;
+        top: 0; left: 0; bottom: 0; right: 0;
+        height: 2px;
+        width: 100%;
+        margin: auto;
+        
+          background-color: #fff;
+        
+      }
+
+      .selected-indicator .crosshair-y {
+        position: absolute;
+        top: 0; left: 0; bottom: 0; right: 0;
+        width: 2px;
+        height: 100%;
+        margin: auto;
+        
+          background-color: #fff;
+        
+      }
+
+      #legend {
+        position: absolute;
+        z-index: 9998;
+        
+          bottom: 10px;
+        
+          right: 10px;
+        
+          padding: 10px;
+        
+          border: 1px solid #262626;
+        
+          border-radius: 2px;
+        
+          background-color: #111111;
+        
+          filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.5));
+        
+          color: #eeeeee;
+        
+          font-family: 'Open Sans';
+        
+      }
+
+      #legend .container {
+        display: flex;
+        flex: auto;
+        align-items: flex-start;
+        
+        flex-direction: column;
+        
+      }
+
+      #legend .legend-section {
+        width: 100%;
+      }
+
+      #legend .legend-section:not(:first-child) {
+        
+      }
+
+      #legend h2 {
+        font-size: 1em;
+        font-weight: 600;
+        padding-top: 0;
+        margin-top: 0;
+        margin-bottom: 5px;
+        text-align: center;
+        max-width: 250px;
+        white-space: normal;
+      }
+
+      #legend h3 {
+        font-size: 0.8em;
+        margin-top: 10px;
+        margin-bottom: 0px;
+        max-width: 250px;
+        white-space: normal;
+      }
+
+      #legend select {
+        width: 100%;
+        margin-bottom: 5px;
+        background: transparent;
+        color: #fff;
+        border-radius: 2px;
+        font-size: 0.75em;
+      }
+
+      #legend select option {
+        background: #000;
+      }
+
+      #legend .legend-element, #legend .legend-element-range {
+        position: relative;
+        display: flex;
+        flex: auto;
+        align-items: flex-start;
+        padding-bottom: 2px;
+        padding-top: 2px;
+      }
+
+      #legend .legend-element {
+        align-items: flex-start;
+      }
+
+      #legend .legend-element-range {
+        flex-direction: column;
+      }
+
+      #legend .color-box {
+        
+          width: 15px;
+        
+          height: 15px;
+        
+          border: solid 0px;
+        
+      }
+
+      #legend .color-stripe {
+        
+          width: 15px;
+        
+          height: 1px;
+        
+          border: solid 0px;
+        
+      }
+
+      #legend .legend-label {
+        height: 15px;
+        font-size: 0.7em;
+        padding-left: 5px;
+      }
+
+      #legend .legend-label.max {
+        position: absolute;
+        top: 0px;
+        margin-left: 15px;
+      }
+
+      #legend .legend-label.min {
+        position: absolute;
+        bottom: 2px;
+        margin-left: 15px;
+      }
+
+      #selected {
+        position: absolute;
+        display: none;
+        z-index: 9998;
+        width: 250px;
+        
+          bottom: 10px;
+        
+          left: 10px;
+        
+          padding: 0px;
+        
+          border: 1px solid #262626;
+        
+          border-radius: 2px;
+        
+          background-color: #111111;
+        
+          filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.5));
+        
+          color: #eeeeee;
+        
+          font-family: 'Open Sans';
+        
+      }
+
+      #selected #selected-controls {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 5px 10px;
+        border-bottom: 1px solid #262626;
+        font-size: 0.8em;
+        font-weight: bold;
+      }
+
+      #selected #selected-controls * {
+        display: inline-block;
+      }
+
+      #selected #selected-controls #selected-title {
+        flex-grow: 1;
+        white-space: nowrap; 
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #aaa;
+      }
+
+      #selected #selected-controls a {
+        margin: 0px 2px;
+        font-size: 1.5em;
+        color: #fff;
+        opacity: 0.75;
+        transition: 0.2s;
+      }
+
+      #selected #selected-controls a:hover {
+        opacity: 1.0;
+      }
+
+      #selected #selected-controls a#selected-remove {
+        position: absolute;
+        right: 10px;
+        top: 42px;
+        color: #e74c3c;
+      }
+
+      #selected #selected-container {
+        padding: 10px;
+        font-size: 0.8em;
+      }
+
+      #selected #selected-container img {
+        margin-left: -10px;
+      }
+
+      #selected #selected-container .label {
+        font-weight: bold;
+        color: #aaa;
+        font-size: 0.7em;
+      }
+
+      #selected #selected-container .label:not(:first-child) {
+        margin-top: 2px;
+      }
+
+      #selected #selected-container .content {
+        white-space: nowrap; 
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      #selected #selected-container .content a {
+        text-decoration: none;
+        color: #3498db;
+      }
+
+      #controls {
+        position: absolute;
+        z-index: 9998;
+        
+          top: 10px;
+        
+          right: 10px;
+        
+          padding: 2px;
+        
+          border: 1px solid #262626;
+        
+          border-radius: 2px;
+        
+          background-color: #111111;
+        
+          filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.5));
+        
+          color: #eeeeee;
+        
+          font-family: 'Open Sans';
+        
+      }
+
+      #controls a {
+        display: inline-block;
+        padding: 5px 10px;
+        font-size: 1.2em;
+        color: #fff;
+        opacity: 0.75;
+        transition: 0.2s;
+      }
+
+      #controls a:hover {
+        opacity: 1.0;
+      }
+
+      #controls #more-controls {
+        display: inline-block;
+      }
+
+      #impress {
+        position: absolute;
+        z-index: 9999;
+        top: 10px;
+        left: 10px;
+        font-size: 0.7em;
+        color: #eee;
+      }
+
+      #impress a {
+        color: #3498db;
+        text-decoration: none;
+      }
+
+      #smiles-canvas {
+        position: absolute;
+        z-index: 9999;
+        left: -999px;
+        top: -999px;
+        width: 250px;
+        height: 250px;
+      }
+
+
+
+      #overlay-structure-container {
+        position: absolute;
+        z-index: 9999;
+        top: 50px;
+        left: 275px;
+        right: 100px;
+        bottom: 10px;
+        opacity: .5;
+        pointer-events: none;
+      }
+
+      #overlay-structure {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: auto;
+        margin-bottom: auto;
+      }
+
+
+
+
+
+      .show {
+        opacity: 1.0 !important;
+      }
+
+      .hide {
+        display: none !important;
+      }
+
+      @media only screen and (max-width: 600px) {
+        #selected {
+          position: absolute;
+          display: none;
+          z-index: 9998;
+          width: 125px;
+          opacity: 0.8;
+          background-filter: blur(10px);
+        }
+
+        #selected img {
+          width: 125px;
+        }
+
+        #tip {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas id="smiles-canvas" data-bind="smilesCanvas"></canvas>
+    
+    
+    
+    
+
+    <div id="overlay-structure-container" data-binding-id="overlayStructureContainer" class="">
+      <canvas id="overlay-structure" data-binding-id="overlayStructure" width="450" height="687">
+
+      </canvas></div>
+    </div>
+
+    <div id="tip" data-bind="tip">
+      <div id="tip-text" data-bind="tipText"></div>
+    </div>
+    <div id="selected" data-bind="selected">
+      <div id="selected-controls" data-bind="selectedControls">
+        <a id="selected-toggle" data-bind="selectedToggle" href="#">
+          <i class="fas fa-toggle-on"></i>
+        </a>
+        <span>&nbsp;&nbsp;</span>
+        <span id="selected-title" data-bind="selectedTitle"></span>
+        <span>&nbsp;&nbsp;</span>
+        <span id="selected-current" data-bind="selectedCurrent" data-bind="selectedCurrent">0</span><span> / </span><span id="selected-total" data-bind="selectedTotal">0</span>
+        <span>&nbsp;&nbsp;</span>
+        <a id="selected-prev" data-bind="selectedPrev" href="#">
+          <i class="fas fa-angle-left"></i>
+        </a>
+        <span>&nbsp;</span>
+        <a id="selected-next" data-bind="selectedNext" href="#">
+          <i class="fas fa-angle-right"></i>
+        </a>
+        <a id="selected-remove" data-bind="selectedRemove" href="#">
+          <i class="fas fa-times"></i>
+        </a>
+      </div>
+      <div id="selected-container" data-bind="selectedContainer">
+      </div>
+    </div>
+    <div id="controls" data-bind="controls">
+      <div id="more-controls" data-bind="moreControls" class="hide">
+        <a id="search" data-bind="search" href="#">
+          <i class="fas fa-search"></i>
+        </a>
+        <a id="download" data-bind="download" href="#">
+          <i class="fas fa-download"></i>
+        </a>
+        <a id="export" data-bind="export" href="#">
+          <i class="fas fa-camera"></i>
+        </a>
+        <a id="largepreview" data-bind="largepreview" href="#">
+          <i class="fas fa-expand"></i>
+        </a>
+      </div>
+      <a id="show-controls" data-bind="showControls" href="#">
+        <i class="fas fa-bars"></i>
+      </a>
+    </div>
+    <div id="hover-indicator" data-bind="hoverIndicator"></div>
+    <canvas id="lore"></canvas>
+
+    
+    <script>
+      const data = {
+ido1: {
+x: [250.977,427.449,412.868,518.454,400.238,366.602,261.434,278.612,716.377,707.154,139.815,568.865,348.867,274.269,259.185,399.326,414.655,310.283,0.0,10.169,675.932,560.306,521.85,358.204,389.454,420.386,418.667,740.539,77.015,50.255,693.049,701.212,290.537,395.594,513.097,340.966,253.247,267.965,436.039,601.478,517.397,424.361,678.096,107.018,537.528,264.865,175.856,750.0,307.199,27.424,411.737,419.294,529.674,372.905,355.031,377.462,257.409,404.518,430.603,728.927,639.572,364.515,385.629,723.648,346.075,377.024,438.527,300.709,19.629,69.279,465.129,252.411,257.374,333.366,215.508,513.871,415.494,435.488],
+y: [538.486,22.054,129.002,626.733,178.013,409.679,656.065,660.655,639.022,644.454,561.356,611.97,357.556,649.297,542.535,398.954,115.895,551.473,601.894,599.23,664.079,612.25,672.779,353.498,399.732,73.865,20.858,724.005,577.349,585.286,653.197,690.749,596.1,254.913,671.985,343.879,750.0,714.977,5.29,631.063,657.002,0.361,676.655,569.155,639.757,699.338,554.072,732.021,539.932,592.787,183.202,7.694,632.727,399.993,368.641,388.342,732.256,190.179,0.0,722.664,648.306,492.986,324.049,711.069,373.474,413.45,15.841,533.22,588.092,575.58,562.934,660.575,709.404,330.484,547.616,594.916,529.624,28.0],
+z: [375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0],
+labels: ['OC(CC1c2ccc(F)cc2-c2cncn21)C1CCCCC1__CHEMBL4467515__4000 nM','O[C@H](C[C@@H]1c2c(F)cccc2-c2cncn21)[C@H]1CC[C@H](O)CC1__CHEMBL4435301__3700 nM','O[C@@H](C[C@@H]1c2c(F)cccc2-c2cncn21)[C@H]1CC[C@H](O)CC1__CHEMBL4443852__2900 nM','OCCC1c2ccccc2-c2cncn21__CHEMBL4466645__6700 nM','OC(CC1c2c(Cl)cccc2-c2cncn21)C1CCCCC1__CHEMBL4552010__610 nM','COC(=O)[C@H]1CC[C@H]([C@H](O)CC2c3ccccc3-c3cncn32)CC1__CHEMBL4461858__280 nM','CC(C)(C)OC(=O)N1CCC(C(O)CC2c3ccccc3-c3cncn32)CC1__CHEMBL4467319__140 nM','O=C(Nc1ccccc1)N1CCC(C(O)CC2c3ccccc3-c3cncn32)CC1__CHEMBL4577440__45 nM','c1ccc(-c2c[nH]cn2)cc1__CHEMBL14145__27000 nM','Oc1ccccc1-c1c[nH]cn1__CHEMBL457063__1700 nM','Oc1ccc(Cl)cc1-c1cncn1C1CCCCC1__CHEMBL4449551__1900 nM','Oc1cccc(OCCC2CCCCC2)c1-c1cnc[nH]1__CHEMBL4439222__1700 nM','OC(CC1c2ccccc2-c2cncn21)c1cncs1__CHEMBL4439809__1800 nM','CC(=O)N1CCC(C(O)CC2c3ccccc3-c3cncn32)CC1__CHEMBL4566253__2500 nM','OC(CC1c2cc(F)ccc2-c2cncn21)C1CCCCC1__CHEMBL4563021__420 nM','O=C(N[C@H]1CC[C@H](C(O)CC2c3ccccc3-c3cncn32)CC1)c1ccccc1__CHEMBL4450473__50 nM','O[C@H](C[C@H]1c2c(F)cccc2-c2cncn21)[C@H]1CC[C@@H](O)CC1__CHEMBL4530496__90 nM','NC(CC1c2ccccc2-c2cncn21)C1CCCCC1__CHEMBL4551141__1100 nM','Oc1c(Cl)cccc1-c1cnc[nH]1__CHEMBL4464867__32000 nM','Oc1c(Cl)cc(F)cc1-c1cnc[nH]1__CHEMBL4581555__47000 nM','CC(C)(C)CCOc1ccccc1-c1cnc[nH]1__CHEMBL4589736__7800 nM','c1ccc(-c2cnc[nH]2)c(OCCC2CCCCC2)c1__CHEMBL4466391__3800 nM','Oc1cccc2c1-c1cncn1C2__CHEMBL4585404__3100 nM','Cn1cc(C(O)CC2c3ccccc3-c3cncn32)cn1__CHEMBL4542931__1200 nM','O=C(N[C@H]1CC[C@@H](C(O)CC2c3ccccc3-c3cncn32)CC1)c1ccccc1__CHEMBL4550278__72 nM','OC(CC1c2c(F)cccc2-c2cncn21)[C@H]1CC[C@H](O)CC1__CHEMBL4476312__200 nM','O[C@@H](C[C@H]1c2c(F)cccc2-c2cncn21)[C@H]1CC[C@H](O)CC1__CHEMBL4446572__42 nM','c1ccc(COc2ccccc2-c2cnc[nH]2)cc1__CHEMBL4466840__18000 nM','Cc1ccc(O)c(-c2cnc[nH]2)c1__CHEMBL4576216__640 nM','Oc1ccc(F)cc1-c1cnc[nH]1__CHEMBL4466768__1700 nM','CC(C)(C)CCn1cncc1-c1ccccc1O__CHEMBL4466912__23000 nM','CC(C)CCOc1ccccc1-c1cnc[nH]1__CHEMBL4529846__6600 nM','O=C(C1CCCCC1)N1CCC(C(O)CC2c3ccccc3-c3cncn32)CC1__CHEMBL4461262__670 nM','OC(CC1c2c(F)cccc2-c2cncn21)C1CCC(F)(F)CC1__CHEMBL4576829__100 nM','c1ccc2c(c1)ccn1cncc21__CHEMBL4437180__22000 nM','OC(CC1c2ccccc2-c2cncn21)c1ccncc1__CHEMBL4449872__370 nM','O=C(c1ccc(F)cc1)N1CCC(C(O)CC2c3ccccc3-c3cncn32)CC1__CHEMBL4571106__2400 nM','O=C(Cc1cncnc1)N1CCC(C(O)CC2c3ccccc3-c3cncn32)CC1__CHEMBL4473619__700 nM','O[C@@H](C[C@@H]1c2c(F)cccc2-c2cncn21)[C@H]1CC[C@@H](O)CC1__CHEMBL4467206__1500 nM','c1ccc(-c2cnc[nH]2)c(OCCC2CCCC2)c1__CHEMBL4527226__7200 nM','c1ccc2c(c1)Cn1cncc1-2__CHEMBL4557547__5700 nM','OC(CC1c2c(F)cccc2-c2cncn21)[C@H]1CC[C@@H](O)CC1__CHEMBL4562289__260 nM','c1ccc(-c2cnc[nH]2)c(OCCn2cccn2)c1__CHEMBL4473563__44000 nM','Oc1ccc(Cl)cc1-c1cnc[nH]1__CHEMBL4455007__490 nM','O=C(CC1c2ccccc2-c2cncn21)c1ccccc1__CHEMBL4524705__5200 nM','O=C(Cc1ccccc1)N1CCC(C(O)CC2c3ccccc3-c3cncn32)CC1__CHEMBL4537319__31 nM','OC(CC1c2ccc(Cl)cc2-c2cncn21)C1CCCCC1__CHEMBL4455592__6900 nM','OC(COc1ccccc1-c1cnc[nH]1)c1ccccc1__CHEMBL4437006__7200 nM','O[C@@H](C[C@H]1c2ccccc2-c2cncn21)C1CCCCC1__CHEMBL3752060__21 nM','Oc1c(F)cc(F)cc1-c1cnc[nH]1__CHEMBL4539142__960 nM','O=C1CCC(C(O)CC2c3c(F)cccc3-c3cncn32)CC1__CHEMBL4543526__600 nM','O[C@H](C[C@H]1c2c(F)cccc2-c2cncn21)[C@H]1CC[C@H](O)CC1__CHEMBL3989951__28 nM','CC(C)(O)CC1c2ccccc2-c2cncn21__CHEMBL4527119__7700 nM','OC(CC1c2ccccc2-c2cncn21)C1CCCC1__CHEMBL4594197__160 nM','OC(CC1c2ccccc2-c2cncn21)c1ccccc1__CHEMBL4453343__330 nM','OC(CC1c2ccccc2-c2cncn21)C1CCOCC1__CHEMBL4528916__790 nM','O=C(Cc1ccc(F)cc1)N1CCC(C(O)CC2c3ccccc3-c3cncn32)CC1__CHEMBL4542242__40 nM','OC(CC1c2c(F)cccc2-c2cncn21)C1CCCCC1__CHEMBL3753837__30 nM','OC1CCC(C(O)CC2c3c(F)cccc3-c3cncn32)CC1__CHEMBL4517185__200 nM','c1ccc(CCCOc2ccccc2-c2cnc[nH]2)cc1__CHEMBL4461013__16000 nM','c1ccc(-c2cnc[nH]2)c(OCCC2CC2)c1__CHEMBL4546318__5100 nM','OC(CC1c2ccccc2-c2cncn21)C1CCCCC1__CHEMBL3629569__60 nM','OC(CC1c2ccccc2-c2cncn21)C1CCC(F)(F)CC1__CHEMBL4570289__46 nM','c1ccc(CCOc2ccccc2-c2cnc[nH]2)cc1__CHEMBL4476409__9100 nM','OC(CC1c2ccccc2-c2cncn21)c1cccnc1__CHEMBL4524535__2900 nM','Cl.Cl.OC(CC1c2ccccc2-c2cncn21)C1CNC1__CHEMBL4569332__24000 nM','O[C@@H](C[C@H]1c2c(F)cccc2-c2cncn21)[C@H]1CC[C@@H](O)CC1__CHEMBL4540038__440 nM','O[C@@H](C[C@@H]1c2ccccc2-c2cncn21)C1CCCCC1__CHEMBL3754097__18000 nM','Oc1c(F)cc(Cl)cc1-c1cnc[nH]1__CHEMBL4579820__300 nM','Oc1ccc(Br)cc1-c1cnc[nH]1__CHEMBL4445081__760 nM','OC(CC1CCCCC1)CC1c2ccccc2-c2cncn21__CHEMBL4534741__906 nM','CC(C)(C)OC(=O)N1CC(C(O)CC2c3ccccc3-c3cncn32)C1__CHEMBL4557815__810 nM','O=C(Cc1ccncc1)N1CCC(C(O)CC2c3ccccc3-c3cncn32)CC1__CHEMBL4559452__230 nM','OC(CC1c2ccccc2-c2cncn21)c1ccccn1__CHEMBL4446614__8800 nM','OC(CC1c2cc(Cl)ccc2-c2cncn21)C1CCCCC1__CHEMBL4546052__210 nM','c1ccc2c(c1)-c1cncn1C2CCC1CCCCC1__CHEMBL4454031__135 nM','O[C@H](C[C@H]1c2ccccc2-c2cncn21)C1CCCCC1__CHEMBL3752711__110 nM','O[C@H](C[C@@H]1c2c(F)cccc2-c2cncn21)[C@H]1CC[C@@H](O)CC1__CHEMBL4535605__3400 nM'],
+colors: [
+{
+r: [0,0,9,0,173,255,255,241,0,67,54,67,60,25,215,255,255,112,0,0,0,0,2,102,255,255,228,0,170,67,0,0,164,255,0,228,28,160,77,0,0,255,0,199,0,182,0,0,128,128,177,168,0,255,241,148,223,182,255,0,0,255,241,0,9,0,212,0,251,151,131,144,255,0,255,255,255,0],
+g: [196,208,240,128,255,234,148,8,0,255,255,255,255,255,255,22,93,255,0,0,108,204,232,255,67,189,0,0,255,255,0,128,255,104,0,255,255,255,255,116,148,226,0,255,160,0,124,116,0,255,255,0,108,163,252,255,0,0,189,12,164,45,8,88,240,0,255,0,241,255,255,255,208,92,196,141,119,220],
+b: [255,255,238,255,73,0,0,0,209,180,193,180,186,222,31,0,0,135,182,128,255,255,244,144,0,0,0,255,77,180,232,255,83,0,241,19,219,86,170,255,255,0,137,48,255,0,255,255,0,119,70,0,255,0,6,99,0,0,0,255,255,0,0,255,238,227,35,255,0,96,115,102,0,255,0,0,0,254],
+},
+]},
+ido1_tree: {
+x: [250.977,259.185,427.449,420.386,427.449,418.667,427.449,436.039,427.449,424.361,427.449,419.294,427.449,430.603,427.449,438.527,427.449,435.488,412.868,414.655,412.868,420.386,412.868,404.518,518.454,513.871,518.454,529.674,518.454,517.397,400.238,404.518,366.602,372.905,261.434,252.411,261.434,274.269,278.612,274.269,716.377,707.154,707.154,693.049,139.815,175.856,139.815,107.018,568.865,560.306,348.867,355.031,274.269,290.537,274.269,264.865,259.185,215.508,259.185,307.199,399.326,389.454,310.283,307.199,0.0,10.169,10.169,27.424,675.932,701.212,675.932,639.572,675.932,678.096,675.932,693.049,560.306,601.478,560.306,513.871,521.85,517.397,358.204,355.031,389.454,372.905,740.539,723.648,740.539,750.0,77.015,107.018,77.015,69.279,77.015,50.255,50.255,27.424,701.212,723.648,290.537,307.199,395.594,404.518,395.594,385.629,513.097,517.397,340.966,355.031,340.966,333.366,253.247,257.409,267.965,264.865,601.478,639.572,537.528,529.674,264.865,257.374,264.865,257.409,175.856,215.508,307.199,364.515,307.199,300.709,27.424,19.629,411.737,404.518,372.905,364.515,372.905,377.462,372.905,385.629,372.905,377.024,372.905,355.031,355.031,346.075,728.927,723.648,364.515,415.494,465.129,415.494,465.129,513.871],
+y: [538.486,542.535,22.054,73.865,22.054,20.858,22.054,5.29,22.054,0.361,22.054,7.694,22.054,0.0,22.054,15.841,22.054,28.0,129.002,115.895,129.002,73.865,129.002,190.179,626.733,594.916,626.733,632.727,626.733,657.002,178.013,190.179,409.679,399.993,656.065,660.575,656.065,649.297,660.655,649.297,639.022,644.454,644.454,653.197,561.356,554.072,561.356,569.155,611.97,612.25,357.556,368.641,649.297,596.1,649.297,699.338,542.535,547.616,542.535,539.932,398.954,399.732,551.473,539.932,601.894,599.23,599.23,592.787,664.079,690.749,664.079,648.306,664.079,676.655,664.079,653.197,612.25,631.063,612.25,594.916,672.779,657.002,353.498,368.641,399.732,399.993,724.005,711.069,724.005,732.021,577.349,569.155,577.349,575.58,577.349,585.286,585.286,592.787,690.749,711.069,596.1,539.932,254.913,190.179,254.913,324.049,671.985,657.002,343.879,368.641,343.879,330.484,750.0,732.256,714.977,699.338,631.063,648.306,639.757,632.727,699.338,709.404,699.338,732.256,554.072,547.616,539.932,492.986,539.932,533.22,592.787,588.092,183.202,190.179,399.993,492.986,399.993,388.342,399.993,324.049,399.993,413.45,399.993,368.641,368.641,373.474,722.664,711.069,492.986,529.624,562.934,529.624,562.934,594.916],
+z: [375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0],
+},
+};
+
+    </script>
+    
+    <script>
+
+      //status on whether to show or not the background canvas
+      let FullMolinBkg = false;
+
+      let smilesDrawer = new SmilesDrawer.Drawer({
+        width: 250 / window.devicePixelRatio,
+        height: 250 / window.devicePixelRatio,
+        experimental: true
+      });
+
+      class Faerun {
+        constructor() {
+          this.body = document.getElementsByTagName('body')[0];
+
+          this.selectedItems = [];
+          this.selectedIndicators = [];
+          this.selectedCurrent = [];
+          this.scatterMeta = [{"categorical": [false], "fog_intensity": 0.0, "has_legend": true, "interactive": true, "is_range": [true], "label_index": [0], "legend": [[[[0.5, 0.0, 0.0, 1.0], "5.4"], [[0.535650623885918, 0.0, 0.0, 1.0], "5.4"], [[0.589126559714795, 0.0, 0.0, 1.0], "5.43"], [[0.6247771836007131, 0.0, 0.0, 1.0], "5.54"], [[0.6782531194295901, 0.0, 0.0, 1.0], "5.17"], [[0.7317290552584672, 0.0, 0.0, 1.0], "5.17"], [[0.7673796791443852, 0.0, 0.0, 1.0], "6.21"], [[0.8208556149732622, 0.0, 0.0, 1.0], "6.55"], [[0.8565062388591802, 0.0, 0.0, 1.0], "6.85"], [[0.9099821746880573, 0.0007262164124910431, 0.0, 1.0], "7.35"], [[0.9634581105169343, 0.04429920116194641, 0.0, 1.0], "7.35"], [[0.9991087344028523, 0.07334785766158336, 0.0, 1.0], "4.57"], [[1.0, 0.11692084241103862, 0.0, 1.0], "5.77"], [[1.0, 0.14596949891067557, 0.0, 1.0], "5.72"], [[1.0, 0.18954248366013093, 0.0, 1.0], "5.72"], [[1.0, 0.2331154684095862, 0.0, 1.0], "5.77"], [[1.0, 0.26216412490922314, 0.0, 1.0], "5.75"], [[1.0, 0.3057371096586785, 0.0, 1.0], "5.6"], [[1.0, 0.34931009440813376, 0.0, 1.0], "6.38"], [[1.0, 0.3783587509077707, 0.0, 1.0], "6.38"], [[1.0, 0.4219317356572261, 0.0, 1.0], "7.3"], [[1.0, 0.4509803921568629, 0.0, 1.0], "7.05"], [[1.0, 0.4945533769063183, 0.0, 1.0], "5.96"], [[1.0, 0.5381263616557737, 0.0, 1.0], "5.96"], [[1.0, 0.5671750181554105, 0.0, 1.0], "4.5"], [[1.0, 0.6107480029048659, 0.0, 1.0], "4.33"], [[1.0, 0.6397966594045028, 0.0, 1.0], "5.11"], [[1.0, 0.6833696441539581, 0.0, 1.0], "5.42"], [[1.0, 0.7269426289034134, 0.0, 1.0], "5.42"], [[1.0, 0.7559912854030507, 0.0, 1.0], "5.51"], [[1.0, 0.7995642701525056, 0.0, 1.0], "5.92"], [[1.0, 0.8286129266521426, 0.0, 1.0], "7.14"], [[1.0, 0.872185911401598, 0.0, 1.0], "7.14"], [[1.0, 0.9157588961510532, 0.0, 1.0], "6.7"], [[0.9835547122074635, 0.9448075526506902, 0.0, 1.0], "7.38"], [[0.9456040480708408, 0.9883805374001459, 0.022137887413030133, 1.0], "4.75"], [[0.9076533839342187, 1.0, 0.06008855154965209, 1.0], "6.19"], [[0.8823529411764705, 1.0, 0.08538899430740043, 1.0], "6.19"], [[0.844402277039848, 1.0, 0.12333965844402273, 1.0], "5.77"], [[0.8191018342820998, 1.0, 0.14864010120177107, 1.0], "4.64"], [[0.7811511701454774, 1.0, 0.18659076533839347, 1.0], "5.18"], [[0.7432005060088547, 1.0, 0.2245414294750162, 1.0], "5.18"], [[0.7179000632511068, 1.0, 0.2498418722327641, 1.0], "6.17"], [[0.6799493991144844, 1.0, 0.2877925363693865, 1.0], "7.0"], [[0.6546489563567361, 1.0, 0.31309297912713474, 1.0], "4.66"], [[0.6166982922201137, 1.0, 0.35104364326375714, 1.0], "6.43"], [[0.5787476280834913, 1.0, 0.38899430740037955, 1.0], "6.43"], [[0.5534471853257431, 1.0, 0.4142947501581278, 1.0], "5.62"], [[0.5154965211891207, 1.0, 0.4522454142947502, 1.0], "6.16"], [[0.4901960784313725, 1.0, 0.4775458570524984, 1.0], "5.82"], [[0.45224541429475007, 1.0, 0.5154965211891208, 1.0], "5.14"], [[0.4142947501581275, 1.0, 0.5534471853257434, 1.0], "5.14"], [[0.38899430740037944, 1.0, 0.5787476280834916, 1.0], "5.24"], [[0.3510436432637571, 1.0, 0.6166982922201139, 1.0], "6.58"], [[0.3130929791271345, 1.0, 0.6546489563567364, 1.0], "4.36"], [[0.2877925363693864, 1.0, 0.6799493991144845, 1.0], "4.36"], [[0.24984187223276405, 1.0, 0.717900063251107, 1.0], "6.31"], [[0.2245414294750158, 1.0, 0.7432005060088551, 1.0], "5.28"], [[0.1865907653383934, 1.0, 0.7811511701454776, 1.0], "7.51"], [[0.148640101201771, 1.0, 0.8191018342820999, 1.0], "5.16"], [[0.12333965844402275, 1.0, 0.8444022770398483, 1.0], "5.16"], [[0.08538899430740036, 1.0, 0.8823529411764706, 1.0], "5.14"], [[0.06008855154965211, 0.9745098039215686, 0.9076533839342189, 1.0], "7.68"], [[0.022137887413029723, 0.9274509803921569, 0.9456040480708413, 1.0], "6.02"], [[0.0, 0.8803921568627451, 0.9835547122074637, 1.0], "6.02"], [[0.0, 0.8490196078431372, 1.0, 1.0], "6.22"], [[0.0, 0.8019607843137255, 1.0, 1.0], "7.55"], [[0.0, 0.7549019607843137, 1.0, 1.0], "5.11"], [[0.0, 0.7235294117647059, 1.0, 1.0], "6.8"], [[0.0, 0.6764705882352942, 1.0, 1.0], "6.8"], [[0.0, 0.6450980392156863, 1.0, 1.0], "6.48"], [[0.0, 0.5980392156862745, 1.0, 1.0], "6.1"], [[0.0, 0.5509803921568628, 1.0, 1.0], "7.4"], [[0.0, 0.5196078431372549, 1.0, 1.0], "7.4"], [[0.0, 0.4725490196078431, 1.0, 1.0], "7.52"], [[0.0, 0.4411764705882353, 1.0, 1.0], "6.7"], [[0.0, 0.3941176470588234, 1.0, 1.0], "4.8"], [[0.0, 0.34705882352941175, 1.0, 1.0], "5.29"], [[0.0, 0.3156862745098039, 1.0, 1.0], "5.29"], [[0.0, 0.26862745098039204, 1.0, 1.0], "7.22"], [[0.0, 0.2372549019607843, 1.0, 1.0], "7.34"], [[0.0, 0.19019607843137254, 1.0, 1.0], "5.04"], [[0.0, 0.14313725490196066, 1.0, 1.0], "5.04"], [[0.0, 0.11176470588235295, 1.0, 1.0], "5.54"], [[0.0, 0.06470588235294118, 1.0, 1.0], "4.62"], [[0.0, 0.0176470588235293, 1.0, 1.0], "6.36"], [[0.0, 0.0, 1.0, 1.0], "4.75"], [[0.0, 0.0, 0.999108734402852, 1.0], "4.75"], [[0.0, 0.0, 0.963458110516934, 1.0], "6.52"], [[0.0, 0.0, 0.909982174688057, 1.0], "6.12"], [[0.0, 0.0, 0.85650623885918, 1.0], "6.04"], [[0.0, 0.0, 0.820855614973262, 1.0], "6.04"], [[0.0, 0.0, 0.767379679144385, 1.0], "6.09"], [[0.0, 0.0, 0.731729055258467, 1.0], "6.64"], [[0.0, 0.0, 0.67825311942959, 1.0], "5.06"], [[0.0, 0.0, 0.624777183600713, 1.0], "6.68"], [[0.0, 0.0, 0.589126559714795, 1.0], "6.68"], [[0.0, 0.0, 0.535650623885918, 1.0], "6.87"], [[0.0, 0.0, 0.5, 1.0], "6.96"]]], "legend_title": ["ido1"], "mapping": {"c": "c", "cs": "cs", "knn": "knn", "labels": "labels", "s": "s", "x": "x", "y": "y", "z": "z"}, "max_c": [7.68], "max_legend_label": ["7.68"], "max_point_size": 100.0, "min_c": [4.33], "min_legend_label": ["4.33"], "name": "ido1", "ondblclick": [null], "point_scale": 13, "selected_labels": [null], "series_title": ["pChEMBL Value"], "shader": "smoothCircle", "title_index": [0]}];
+          this.treeMeta = [{"color": "#666666", "fog_intensity": 0.0, "mapping": {"c": "c", "from": "from", "to": "to", "x": "x", "y": "y", "z": "z"}, "name": "ido1_tree", "point_helper": "ido1"}];
+          this.seriesState = {};
+          this.el = {};
+
+          this.currentPoint = null;
+
+          this.lore = null;
+          this.clearColorHex = '#111111';
+          this.clearColor = null;
+          this.view = 'front';
+          this.antiAliasing = true;
+          this.alphaBlending = false;
+
+          this.treeHelpers = [];
+          this.pointHelpers = [];
+          this.octreeHelpers = [];
+          this.coordinatesHelper = null;
+
+          this.ohIndexToPhName = [];
+          this.ohIndexToPhIndex = [];
+          this.phIndexMap = {};
+          this.ohIndexMap = {};
+
+          this.min = [Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE];
+          this.max = [-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE];
+          this.maxRadius = -Number.MAX_VALUE;
+
+          this.coords = {
+            show: false,
+            grid: false,
+            ticks: true,
+            tickCount: 10,
+            tickLength: 2.0,
+            color: '#888888',
+            box: false,
+            offset: 5.0
+          };
+
+          this.legend = {
+            show: true,
+            title: 'Legend'
+          };
+
+          this.el = Faerun.bindElements();
+
+          this.scatterMeta.forEach(s => {
+            this.seriesState[s.name] = 0;
+          });
+
+          this.clearColor = Lore.Core.Color.fromHex(this.clearColorHex);
+          this.alphaBlending = (this.view === 'free' ? false : true) || this.alphaBlending;
+
+          this.initLore();
+          this.initTreeHelpers();
+          this.initPointHelpers();
+          this.initCoords();
+          this.initAxes();
+          this.initView();
+          this.initEvents();
+          this.renderLegend();
+        }
+
+        initLore() {
+          this.lore = Lore.init('lore', {
+            antialiasing: this.antiAliasing,
+            clearColor: this.clearColorHex,
+            alphaBlending: this.alphaBlending,
+            preserveDrawingBuffer: true
+          });
+        }
+
+        initTreeHelpers() {
+          this.treeMeta.forEach(t => {
+            let th = new Lore.Helpers.TreeHelper(this.lore, t.name, 'tree');
+            th.setXYZHexS(data[t.name].x, data[t.name].y, data[t.name].z, t.color);
+            th.setFog([this.clearColor.components[0], this.clearColor.components[1], 
+                       this.clearColor.components[2], this.clearColor.components[3]],
+                      t.fog_intensity);
+            this.treeHelpers.push(th);
+          });
+        }
+
+        initPointHelpers() {
+          this.scatterMeta.forEach(s => {           
+            let ph = new Lore.Helpers.PointHelper(
+              this.lore, s.name, s.shader, { maxPointSize: s.max_point_size }
+            );
+
+            ph.setXYZRGBS(data[s.name].x, data[s.name].y, data[s.name].z, 
+                          data[s.name]['colors'][0].r, data[s.name]['colors'][0].g, 
+                          data[s.name]['colors'][0].b, data[s.name]['s'] ? data[s.name]['s'][0] : 1.0);
+
+            ph.setPointScale(s.point_scale);
+            ph.setFog([this.clearColor.components[0], this.clearColor.components[1],
+                       this.clearColor.components[2], this.clearColor.components[3]],
+                      s.fog_intensity)
+
+            this.phIndexMap[s.name] = this.pointHelpers.length;
+            this.pointHelpers.push(ph);
+
+            this.min[0] = Faerun.getMin(data[s.name].x, this.min[0]);
+            this.min[1] = Faerun.getMin(data[s.name].y, this.min[1]);
+            this.min[2] = Faerun.getMin(data[s.name].z, this.min[2]);
+            this.max[0] = Faerun.getMax(data[s.name].x, this.max[0]);
+            this.max[1] = Faerun.getMax(data[s.name].y, this.max[1]);
+            this.max[2] = Faerun.getMax(data[s.name].z, this.max[2]);
+            this.maxRadius = ph.getMaxRadius();
+    
+            if (s.interactive && data[s.name].labels) {
+              this.octreeHelpers.push(
+                new Lore.Helpers.OctreeHelper(this.lore, 'Octree_' + s.name, 'tree', ph)
+              );
+
+              this.ohIndexMap[s.name] = this.octreeHelpers.length - 1;
+              this.ohIndexToPhName.push(s.name);
+              this.ohIndexToPhIndex.push(this.phIndexMap[s.name]);
+            }
+          });
+        }
+
+        initCoords() {
+          if (!this.coords.show) return;
+
+          let min = [0, 0, 0];
+          let max = [0, 0, 0];
+
+          for (var i = 0; i < 3; i++) {
+            min[i] = this.min[i] - this.coords.offset;
+            max[i] = this.max[i] + this.coords.offset;
+          }
+
+          this.coordinatesHelper = new Lore.Helpers.CoordinatesHelper(this.lore, 'Coordinates', 'coordinates', {
+            position: new Lore.Math.Vector3f(min[0], min[1], min[2]),
+            axis: {
+              x: {
+                length: max[0] - min[0],
+                color: Lore.Core.Color.fromHex(this.coords.color)
+              },
+              y: {
+                length: max[1] - min[1],
+                color: Lore.Core.Color.fromHex(this.coords.color)
+              },
+              z: {
+                length: max[2] - min[2],
+                color: Lore.Core.Color.fromHex(this.coords.color)
+              }
+            },
+            ticks: {
+              enabled: this.coords.ticks,
+              x: {
+                length: this.coords.tickLength,
+                color: Lore.Core.Color.fromHex(this.coords.color),
+                count: this.coords.tickCount
+              },
+              y: {
+                length: this.coords.tickLength,
+                color: Lore.Core.Color.fromHex(this.coords.color),
+                count: this.coords.tickCount
+              },
+              z: {
+                length: this.coords.tickLength,
+                color: Lore.Core.Color.fromHex(this.coords.color),
+                count: this.coords.tickCount
+              }
+            },
+            box: {
+              enabled: this.coords.box,
+              x: {
+                color: Lore.Core.Color.fromHex(this.coords.color)
+              },
+              y: {
+                color: Lore.Core.Color.fromHex(this.coords.color)
+              },
+              z: {
+                color: Lore.Core.Color.fromHex(this.coords.color)
+              }
+            }
+          });
+        }
+
+        initAxes() {
+          // Wait for DOM to get ready
+          setTimeout(() => {
+            this.updateTitle(true);
+            this.updateXAxis(true);
+            this.updateYAxis(true);
+          }, 500);
+        }
+
+        initView() {
+          let center = new Lore.Math.Vector3f(
+              (this.max[0] + this.min[0]) / 2.0, 
+              (this.max[1] + this.min[1]) / 2.0, 
+              (this.max[2] + this.min[2]) / 2.0
+            );
+          this.lore.controls.setLookAt(center);
+          this.lore.controls.setRadius(this.maxRadius + 100);
+          this.lore.controls.setView(0.9, -0.5)
+          this.lore.controls.setViewByName(this.view);
+        }
+
+        initEvents() {
+          this.lore.controls.addEventListener('updated', () => {
+            // Update the position / content of the annotations every time
+            // the view changes
+            this.updateTitle();
+            this.updateYAxis();
+            this.updateXAxis();
+            this.updateSelectedIndicators();
+          });
+
+          Lore.Helpers.OctreeHelper.joinHoveredChanged(this.octreeHelpers, e => {
+            let phName = this.ohIndexToPhName[e.source];
+            if (e.e && data[phName].labels) {
+              let fullLabel = data[phName].labels[e.e.index];
+              let labelIndex = this.scatterMeta[this.ohIndexToPhIndex[e.source]]
+                                  .label_index[this.seriesState[phName]];
+              let titleIndex = this.scatterMeta[this.ohIndexToPhIndex[e.source]]
+                                  .title_index[this.seriesState[phName]];
+
+              let rgbColor = this.pointHelpers[e.source].getColor(e.e.index);
+              let hexColor = Lore.Core.Color.rgbToHex(rgbColor[0], rgbColor[1], rgbColor[2]);
+
+              this.currentPoint = {
+                index: e.e.index,
+                fullLabel: fullLabel.split('__'),
+                source: phName,
+                label: fullLabel.split('__')[labelIndex],
+                color: hexColor,
+                labelIndex: labelIndex,
+                titleIndex: titleIndex
+              }
+              
+              if (FullMolinBkg == true) {
+
+                document.getElementById("overlay-structure-container").style.visibility = "visible";
+
+                var overlayStruc_Width = document.getElementById("overlay-structure-container").offsetWidth
+                var overlayStruc_Height = document.getElementById("overlay-structure-container").offsetHeight
+
+                if (overlayStruc_Width > overlayStruc_Height) {overlayStruc_Width = overlayStruc_Height}
+
+                smilesDrawer = new SmilesDrawer.Drawer({
+                  width: overlayStruc_Width / window.devicePixelRatio,
+                  height: overlayStruc_Width / window.devicePixelRatio,
+                  bondThickness: 1.4,
+                  experimental: true
+                });
+
+                this.setTipContent();
+
+
+                smilesDrawer = new SmilesDrawer.Drawer({
+                  width: 250 / window.devicePixelRatio,
+                  height: 250 / window.devicePixelRatio,
+                  bondThickness: 1.4,
+                  experimental: true
+                });
+              } else {
+
+                document.getElementById("overlay-structure-container").style.visibility = "hidden";
+                this.setTipContent__();
+
+                this.el.tip.classList.add('show');
+
+                let pointSize = this.pointHelpers[e.source].getPointSize() / window.devicePixelRatio;
+                let x = e.e.screenPosition[0];
+                let y = e.e.screenPosition[1];
+
+                this.el.hoverIndicator.style.width = pointSize + 'px';
+                this.el.hoverIndicator.style.height = pointSize + 'px';
+                this.el.hoverIndicator.style.left = (x - pointSize / 2.0 - 1) + 'px';
+                this.el.hoverIndicator.style.top = (y - pointSize / 2.0 - 1) + 'px';
+
+                this.el.hoverIndicator.classList.add('show');
+                }
+
+            } else {
+              this.currentPoint = null;
+              this.el.tip.classList.remove('show');
+              this.el.hoverIndicator.classList.remove('show');
+            }
+          });
+
+          Lore.Helpers.OctreeHelper.joinSelectedChanged(this.octreeHelpers, items => {
+            this.selectedItems = items;
+            this.updateSelected();
+          });
+
+          Lore.Helpers.OctreeHelper.joinReselected(this.octreeHelpers, item => {
+            this.updateSelected(
+              this.getSelectedIndex(item[0].source, item[0].item.e.index)
+            );
+          });
+
+          // Event listeners
+          this.el.selectedPrev.addEventListener('click', e => {
+            e.preventDefault();
+            this.updateSelected(this.selectedCurrent - 1);
+            return false;
+          });
+
+          this.el.selectedNext.addEventListener('click', e => {
+            e.preventDefault();
+            this.updateSelected(this.selectedCurrent + 1);
+            return false;
+          });
+
+          this.el.selectedRemove.addEventListener('click', e => {
+            e.preventDefault();
+            let item = this.selectedItems[this.selectedCurrent]
+            this.octreeHelpers[item.source].removeSelected(item.index);
+            return false;
+          });
+
+          document.addEventListener('dblclick', e => {
+            if (this.currentPoint) {
+              var index = this.currentPoint.index;
+              var labels = this.currentPoint.label.split('__');
+              var source = this.currentPoint.source;
+              eval(this.scatterMeta[this.phIndexMap[source]].ondblclick[this.seriesState[source]]);
+            }
+          });
+
+          document.addEventListener('mousemove', e => {
+            if (FullMolinBkg == false) {
+
+              document.getElementById("tip").style.visibility = "visible";
+
+              let x = e.clientX;
+              let y = e.clientY;
+
+              if (x > window.innerWidth - this.el.tip.offsetWidth - 20) {
+                x -= this.el.tip.offsetWidth;
+              } else {
+                x += 10;
+              }
+
+              if (y > window.innerHeight - this.el.tip.offsetHeight - 20) {
+                y -= this.el.tip.offsetHeight;
+              } else {
+                y += 10;
+              }
+
+              if (this.el.tip) {
+                this.el.tip.style.top = y + 'px';
+                this.el.tip.style.left = x + 'px';
+              }
+            } else {
+              
+              document.getElementById("tip").style.visibility = "hidden";
+
+            }
+          });
+
+          this.el.selectedToggle.addEventListener('click', e => {
+            this.el.selectedContainer.classList.toggle('hide');
+            if (this.el.selectedContainer.classList.contains('hide'))
+              this.el.selectedToggle.innerHTML = '<i class="fas fa-toggle-off"></i>';
+            else
+              this.el.selectedToggle.innerHTML = '<i class="fas fa-toggle-on"></i>';
+            
+            e.preventDefault();
+            return false;
+          });
+
+          this.el.showControls.addEventListener('click', e => {
+            this.el.moreControls.classList.toggle('hide');
+            e.preventDefault();
+            return false;
+          });
+
+          this.el.search.addEventListener('click', e => {
+            let searchTerm = prompt('Please enter a search term:', '');
+            const results = this.search(searchTerm);
+
+            for (const [name, indices] of Object.entries(results)) {
+              if (!name in this.ohIndexMap) return;
+              indices.forEach(index => {
+                this.octreeHelpers[this.ohIndexMap[name]].addSelected(index);
+              });
+            }
+            
+            e.preventDefault();
+            return false;
+          });
+
+          window.addEventListener('keydown', e => {
+            if ((e.keyCode == 114) || (e.ctrlKey && e.keyCode == 70)) {
+              this.search();
+              e.preventDefault();
+              return false;
+            }
+          });
+
+          this.el.export.addEventListener('click', e => {
+            e.preventDefault();
+
+            let canvas = document.getElementById('lore');
+            let zoom = this.lore.controls.getZoom();
+
+            canvas.style.width = (canvas.width * 2) + 'px';
+            canvas.style.height = (canvas.height * 2) + 'px';
+            this.lore.controls.setZoom(zoom * 2);
+
+            setTimeout(() => {
+              let blob = this.lore.canvas.toBlob(blob => {
+                let a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.setAttribute('download', 'export.png');
+                a.click();
+                
+                setTimeout(() => {
+                  canvas.style.width = '100%';
+                  canvas.style.height = '100%';
+                  lore.controls.setZoom(zoom);
+                }, 2000);
+              });
+            }, 2000);
+          });
+
+          this.el.download.addEventListener('click', e => {
+            e.preventDefault();
+
+            let text = ''
+            this.selectedItems.forEach(item => {
+              let phIndex = this.ohIndexToPhIndex[item.source];
+              let meta = this.scatterMeta[phIndex];
+              let phName = this.ohIndexToPhName[item.source];
+              let seriesState = this.seriesState[phName];
+
+              let fullLabel = data[phName].labels[item.item.index].split('__');
+
+              let labelIndex = meta.label_index[seriesState];
+              let titleIndex = meta.title_index[seriesState];
+              let selectedLabels = meta.selected_labels[seriesState];
+
+              fullLabel.forEach((l, i) => {
+                text += l + ';'
+              });
+              text = text.slice(0, -1); 
+              text += '\n';
+            });
+
+            var a = document.createElement('a');
+            a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            a.setAttribute('download', 'faerun_list.csv');
+
+            a.style.display = 'none';
+            document.body.appendChild(a);
+
+            a.click();
+
+            document.body.removeChild(a);
+
+            return false;
+          });
+
+          this.el.largepreview.addEventListener('click', e => {
+            
+            //Switch display mode:
+            if (FullMolinBkg == false) {
+              FullMolinBkg = true;
+            } else {
+              FullMolinBkg = false;
+              //HIDE BIG CANVAS IN BACKGROUND:
+              document.getElementById("overlay-structure-container").style.visibility = "hidden";
+            }
+          });
+        }
+
+        setTipContent__() {
+          SmilesDrawer.parse(this.currentPoint.label, tree => {
+            smilesDrawer.draw(tree, 'smiles-canvas', 'light', false);
+            let tipImage = Faerun.createElement('img');
+            tipImage.src = this.el.smilesCanvas.toDataURL();
+            this.el.tipText.innerHTML = '';
+            if (this.currentPoint.titleIndex !== this.currentPoint.labelIndex)
+              this.el.tipText.innerHTML = `${this.currentPoint.fullLabel[this.currentPoint.titleIndex]}<br />`;
+            this.el.tipText.appendChild(tipImage);
+            this.el.tip.style.borderColor = this.currentPoint.color;
+          }, err => { console.log(err); });
+        }
+
+        setTipContent() {
+          SmilesDrawer.parse(this.currentPoint.label, tree => {
+            smilesDrawer.draw(tree, 'overlay-structure', 'dark', false);
+            document.getElementById("tip").style.visibility = "hidden";
+            //let tipImage = Faerun.createElement('img');
+            //tipImage.src = this.el.smilesCanvas.toDataURL();
+            //this.el.tipText.innerHTML = '';
+            //if (this.currentPoint.titleIndex !== this.currentPoint.labelIndex)
+            //  this.el.tipText.innerHTML = `${this.currentPoint.fullLabel[this.currentPoint.titleIndex]}<br />`;
+           // this.el.tipText.appendChild(tipImage);
+            //this.el.tip.style.borderColor = this.currentPoint.color;
+          }, err => { console.log(err); });
+        }
+
+        setSelectedContent(fullLabel, labelIndex, selectedLabels, img) {
+          this.el.selectedContainer.innerHTML = '';
+          if (img)
+            this.el.selectedContainer.appendChild(img);
+
+          fullLabel.forEach((l, i) => {
+            if (i === labelIndex) return;
+            if (selectedLabels && selectedLabels[i]) {
+              this.el.selectedContainer.appendChild(
+                Faerun.createElement('div', { classes: 'label', content: selectedLabels[i] })
+              );
+            }
+            this.el.selectedContainer.appendChild(
+              Faerun.createElement('div', { classes: 'content', content: l })
+            );
+          });
+
+          // Update the indicator
+          this.updateSelectedIndicators();
+        }
+
+        renderLegend() {
+          if (!this.legend.show) return;
+
+          
+          let legend = document.getElementById('legend');
+          
+          if (legend) this.body.removeChild(legend);
+
+          legend = Faerun.createElement('div', { id: 'legend' });
+          this.body.appendChild(legend)
+          
+          if (this.legend.title && this.legend.title !== '')
+            legend.appendChild(Faerun.createElement('h2', { content: 'Legend' }));
+          
+          let container = Faerun.createElement('div', { classes: 'container' });
+          legend.appendChild(container);
+
+          this.scatterMeta.forEach(s => {
+            let index = this.seriesState[s.name];
+            if (s.has_legend) {
+              let legendSection = []
+              if (!s.is_range[index]) {
+                s.legend[index].forEach(v => {
+                  legendSection.push(Faerun.createElement('div', { classes: 'legend-element' }, [
+                    Faerun.createColorBox(v[0]),
+                    Faerun.createElement('div', { classes: 'legend-label', content: v[1] }),
+                  ]))
+                })
+              } else {
+                legendSection.push(Faerun.createElement('div', { classes: 'legend-element-range' }, [
+                  ...Faerun.createColorScale(s.legend[index]),
+                  Faerun.createElement('div', { 
+                    classes: 'legend-label max', 
+                    content: s.max_legend_label[index] 
+                  }),
+                  Faerun.createElement('div', {
+                    classes: 'legend-label min',
+                    content: s.min_legend_label[index] 
+                  })
+                ]))
+              }
+
+              let series = [];
+              for (var i = 0; i < s.series_title.length; i++) {
+                series.push(
+                  Faerun.createElement('option', { 
+                    value: i, 
+                    content: s.series_title[i], 
+                    selected: i === index
+                  })
+                );
+              }
+
+
+              let sectionHeader = Faerun.createElement(
+                'h3', { content: s.legend_title[index] }
+              );
+              sectionHeader.addEventListener('click', e => {
+                this.toggleLegendSection(s.name);
+              });
+
+              let seriesSelector = Faerun.createElement(
+                'select', 
+                { 
+                  id: `select-${s.name}`, 
+                  classes: 'series-selector',
+                  'data-name': s.name,
+                  hidden: s.series_title.length < 2,
+                }, 
+                [ ...series ]
+              );
+              seriesSelector.addEventListener('change', e => {
+                let value = document.getElementById(`select-${s.name}`).value;
+                this.changeSeries(value, s.name);
+              });
+
+
+              container.appendChild(
+                Faerun.createElement(
+                  'div', { id: `legend-${s.name}`, 
+                  classes: 'legend-section', 
+                  'data-name': `${s.name}` },
+                  [ sectionHeader, seriesSelector, ...legendSection ]
+                )
+              );
+            }
+          });
+        }
+
+        toggleLegendSection(name) {
+          let section = document.getElementById('legend-' + name);
+          let geometry = this.pointHelpers[this.phIndexMap[name]].geometry;
+          let isVisible = geometry.isVisible;
+
+          if (isVisible) {
+            geometry.hide();
+            section.style.opacity = 0.5;
+          } else {
+            geometry.show();
+            section.style.opacity = 1.0;
+          }
+        }
+
+        getSelectedIndex(source, index) {
+          let selectedIndex = null;
+          this.selectedItems.forEach((item, i) => {
+            if (item.source == source && item.item.index == index) {
+              selectedIndex = i;
+              return;
+            }
+          });
+          return selectedIndex;
+        }
+
+        updateSelected(current = -1) {
+          let n = this.selectedItems.length
+          // Hide the container if no items are selected
+          if (n === 0) {
+            this.el.selected.style.display = 'none';
+            return;
+          } else {
+            this.el.selected.style.display = 'block';
+          }
+
+          if (current < 0) current = n - 1;
+          if (current >= n) current = 0;
+          this.selectedCurrent = current;
+
+          let item = this.selectedItems[current];
+
+          let phIndex = this.ohIndexToPhIndex[item.source];
+          let meta = this.scatterMeta[phIndex];
+          let phName = this.ohIndexToPhName[item.source];
+          let seriesState = this.seriesState[phName];
+
+          let fullLabel = data[phName].labels[item.item.index].split('__');
+
+          let labelIndex = meta.label_index[seriesState];
+          let titleIndex = meta.title_index[seriesState];
+          let selectedLabels = meta.selected_labels[seriesState];
+
+          SmilesDrawer.parse(fullLabel[labelIndex], tree => {
+            smilesDrawer.draw(tree, 'smiles-canvas', 'dark', false);
+            let img = Faerun.createElement('img');
+            img.src = this.el.smilesCanvas.toDataURL();
+            
+            this.el.selectedCurrent.innerHTML = current + 1;
+            this.el.selectedTotal.innerHTML = n;
+            this.el.selectedTitle.innerHTML = fullLabel[titleIndex];
+
+            this.setSelectedContent(fullLabel, labelIndex, selectedLabels, img);
+          }, err => { console.log(err); });
+
+          // Remove all indicators
+          this.selectedIndicators.forEach(indicator => {
+            indicator.element.parentElement.removeChild(indicator.element);
+          });
+          this.selectedIndicators.length = 0;
+
+          // Add the indicator for this object
+          let indicatorElement = Faerun.createElement(
+            'div', 
+            { classes: 'selected-indicator' },
+            [
+              Faerun.createElement('div', { classes: 'crosshair-x' }),
+              Faerun.createElement('div', { classes: 'crosshair-y' })
+            ]
+          );
+
+          this.body.appendChild(indicatorElement);
+          this.selectedIndicators.push({
+            element: indicatorElement,
+            index: item.item.index,
+            ohIndex: item.source,
+            phIndex: phIndex
+          });
+          this.updateSelectedIndicators();
+        }
+
+        updateSelectedIndicators() {
+          this.selectedIndicators.forEach(indicator => {
+            let pointSize = this.pointHelpers[indicator.phIndex].getPointSize();
+            let screenPosition = this.octreeHelpers[indicator.ohIndex]
+                                     .getScreenPosition(indicator.index);
+            
+            // Make the crosshairs larger than the point
+            pointSize = Faerun.getMax([pointSize / window.devicePixelRatio, 10 / window.devicePixelRatio]);
+            pointSize *= 1.25;
+            let halfPointSize = pointSize / 2.0;
+            indicator.element.style.left = (screenPosition[0] - halfPointSize) + 'px';
+            indicator.element.style.top = (screenPosition[1] - halfPointSize) + 'px';
+            indicator.element.style.width = pointSize + 'px';
+            indicator.element.style.height = pointSize + 'px';
+          });
+        }
+
+        updateTitle(first = false) {
+          if (this.el.title === undefined) return;
+
+          let bb = this.el.title.getBoundingClientRect();
+          let scenePosition = new Lore.Math.Vector3f(
+            (this.min[0] + this.min[0]) / 2.0, this.min[1], 
+            (this.min[2] + this.min[2]) / 2.0
+          );
+
+          let screenPosition = this.lore.controls.camera.sceneToScreen(scenePosition, this.lore);
+          
+          this.el.title.style.left = (screenPosition[0] - (bb.width / 2.0)) + 'px';
+          this.el.title.style.top = (screenPosition[1] - bb.height) + 'px';
+
+          if (first) this.el.title.classList.add('show');
+        }
+
+        updateXAxis(first = false) {
+          if (this.el.xAxis === undefined) return;
+          
+          let bb = this.el.xAxis.getBoundingClientRect();
+          let scenePosition = new Lore.Math.Vector3f(
+            (this.min[0] + this.min[0]) / 2.0, this.min[1], 
+            (this.min[2] + this.min[2]) / 2.0
+          );
+
+          let screenPosition = this.lore.controls.camera.sceneToScreen(scenePosition, this.lore);
+          
+          this.el.xAxis.style.left = (screenPosition[0] - (bb.width / 2.0)) + 'px';
+          this.el.xAxis.style.top = (screenPosition[1]) + 'px';
+
+          if (first) this.el.xAxis.classList.add('show');
+        }
+
+        updateYAxis(first = false) {
+          if (this.el.yAxis === undefined) return;
+            
+          let bb = this.el.yAxis.getBoundingClientRect();
+          let scenePosition = new Lore.Math.Vector3f(
+            this.min[0], (this.min[1] + this.min[1]) / 2.0, 
+            (this.min[2] + this.min[2]) / 2.0
+          );
+          
+          let screenPosition = this.lore.controls.camera.sceneToScreen(scenePosition, this.lore);
+          
+          this.el.yAxis.style.left = (screenPosition[0] - bb.height) + 'px';
+          this.el.yAxis.style.top = (screenPosition[1] - bb.width / 2.0) + 'px';
+
+          if (first) this.el.yAxis.classList.add('show');
+        }
+
+        changeSeries(value, name) {
+          value = parseInt(value);
+          this.seriesState[name] = value;
+          this.renderLegend();
+
+          this.pointHelpers[this.phIndexMap[name]].setRGBFromArrays(
+            data[name]['colors'][value].r, 
+            data[name]['colors'][value].g, 
+            data[name]['colors'][value].b
+          );
+
+          if (data[name]['s']) {
+            if (data[name]['s'][value]) {
+              this.pointHelpers[this.phIndexMap[name]].setSize(
+                data[name]['s'][value]
+              );
+            } else {
+              this.pointHelpers[this.phIndexMap[name]].setSize(1.0);
+            }
+          }
+        }
+
+        search(term) {
+          let results = {}
+          let re = new RegExp(term, 'i');
+
+          Object.keys(data).forEach(name => {
+            if (!('labels' in data[name])) return;
+            results[name] = []
+            data[name]['labels'].forEach((label, i) => {
+              if (re.test(label))
+                results[name].push(i)
+            });
+          });
+
+          return results;
+        }
+
+        static createColorBox(value) {
+          return Faerun.createElement(
+            'div', 
+            { 
+              classes: 'color-box', 
+              style: `background-color: rgba(${value[0] * 255}, ${value[1] * 255 }, ${value[2] * 255 }, ${value[3] });
+                      border-color: rgba(${value[0] * 255 }, ${value[1] * 255 }, ${value[2] * 255 }, ${value[3] })`
+            }
+          );
+        }
+
+        static createColorScale(values) {
+          let scale = [];
+
+          values.forEach(value => {
+            scale.push(
+              Faerun.createElement(
+                'div', 
+                { 
+                  classes: 'color-stripe', 
+                  style: `background-color: rgba(${value[0][0] * 255}, ${value[0][1] * 255}, ${value[0][2] * 255}, ${value[0][3]});
+                          border-color: rgba(${value[0][0] * 255}, ${value[0][1] * 255}, ${value[0][2] * 255}, ${value[0][3]})`,
+                  alt: value[1]
+                }
+              ),
+            )
+          });
+
+          return scale;
+        }
+        
+        static createElement(tag, values = {}, children = []) {
+          let element = document.createElement(tag);
+
+          for (const key of Object.keys(values)) {
+            if (key === 'classes')
+              element.classList.add(...values[key].split(' '));
+            else if (key === 'content')
+              element.innerHTML = values[key];
+            else if (key === 'hidden') {
+              if (values[key])
+                element.setAttribute('hidden', true);
+            }
+            else if (key === 'selected') {
+              if (values[key])
+                element.setAttribute('selected', true);
+            }
+            else
+              element.setAttribute(key, values[key]);
+          }
+
+          if (children) {
+            if (Array.isArray(children)) {
+              children.forEach(child => {
+                element.appendChild(child);
+              })
+            } else {
+              element.appendChild(children);
+            }
+          }
+
+          return element;
+        }
+
+        static bindElements() {
+          let result = {};
+          document.querySelectorAll('[data-bind]').forEach(e => {
+            result[e.getAttribute('data-bind')] = e;
+          });
+          return result;
+        }
+
+        static getMin(arr, other = Number.MAX_VALUE) {
+          let m = Number.MAX_VALUE;
+          for (var i = 0; i < arr.length; i++)
+              if (arr[i] < m) m = arr[i];
+          
+          if (m < other) return m;
+          return other;
+        }
+
+        static getMax(arr, other = -Number.MAX_VALUE) {
+          let m = -Number.MAX_VALUE;
+          for (var i = 0; i < arr.length; i++)
+              if (arr[i] > m) m = arr[i];
+          
+          if (m > other) return m;
+          return other;
+        }
+      }
+
+      let f = new Faerun();
+    </script>
+  </body>
+</html>
