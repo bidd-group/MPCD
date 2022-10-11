@@ -10,8 +10,8 @@
 
 
 
-|  Idx  | Dataset   | Target                                      | Target_type      |   Compounds | Reference                                                  |
-|:----------|:--------------------------------------------|:-----------------|-------:|:-----------------------------------------------------------|
+|  Idx  | Dataset   | Target                                   | Target_type      |   Compounds | Reference                                            |
+|:---|:----------|:--------------------------------------------|:-----------------|-------:|:-----------------------------------------------------------|
 |  1 | ur2       | Urotensin II receptor                       | GPCR             |     60 | CHEMBL1146083                                              |
 |  2 | plk1      | Serine/threonine-protein kinase PLK1        | Kinase           |     73 | CHEMBL4406868; CHEMBL4138231                               |
 |  3 | rip2      | Serine/threonine-protein kinase RIPK2       | Kinase           |     46 | CHEMBL4266012; CHEMBL4130524                               |
