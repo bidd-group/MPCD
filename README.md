@@ -11,16 +11,16 @@
 
 | Idx| Dataset   | Target                                      | Target\_type  | Compounds | Reference                                |
 |---:|:----------|:--------------------------------------------|:--------------|-------:|:--------------------------------------------|
-|  0 | usp7      | Ubiquitin carboxyl-terminal hydrolase 7     | Protease      |     45 | CHEMBL4251701                               |
-|  1 | rip2      | Serine/threonine-protein kinase RIPK2       | Kinase        |     46 | CHEMBL4266012; CHEMBL4130524                |
-|  2 | phgdh     | D-3-phosphoglycerate dehydrogenase          | Other Enzyme  |     51 | CHEMBL4373702                               |
-|  3 | klk5      | Kallikrein 5                                | Protease      |     65 | CHEMBL4387717; CHEMBL4422656; CHEMBL4396973 |
-|  4 | plk1      | Serine/threonine-protein kinase PLK1        | Kinase        |     73 | CHEMBL4406868; CHEMBL4138231                |
-|  5 | ido1      | Indoleamine 2,3-dioxygenase                 | Other Enzyme  |     78 | CHEMBL4364294                               |
-|  6 | rxfp1     | Relaxin receptor 1                          | GPCR          |    117 | CHEMBL3714716                               |
-|  7 | braf      | Serine/threonine-protein kinase B-raf       | Kinase        |    128 | CHEMBL3638563                               |
-|  8 | notum     | Palmitoleoyl-protein carboxylesterase NOTUM | Other Enzyme  |    128 | CHEMBL4619806; CHEMBL4334426                |
-|  9 | mglur2    | Metabotropic glutamate receptor 2           | GPCR          |    244 | CHEMBL3886984                               |
+|  0 | [usp7](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/usp7.html)      | Ubiquitin carboxyl-terminal hydrolase 7     | Protease      |     45 | CHEMBL4251701                               |
+|  1 | [rip2](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/rip2.html)      | Serine/threonine-protein kinase RIPK2       | Kinase        |     46 | CHEMBL4266012; CHEMBL4130524                |
+|  2 | [phgdh](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/phgdh.html)     | D-3-phosphoglycerate dehydrogenase          | Other Enzyme  |     51 | CHEMBL4373702                               |
+|  3 | [klk5](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/klk5.html)      | Kallikrein 5                                | Protease      |     65 | CHEMBL4387717; CHEMBL4422656; CHEMBL4396973 |
+|  4 | [plk1](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/plk1.html)      | Serine/threonine-protein kinase PLK1        | Kinase        |     73 | CHEMBL4406868; CHEMBL4138231                |
+|  5 | [ido1](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/ido1.html)      | Indoleamine 2,3-dioxygenase                 | Other Enzyme  |     78 | CHEMBL4364294                               |
+|  6 | [rxfp1](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/rxfp1.html)     | Relaxin receptor 1                          | GPCR          |    117 | CHEMBL3714716                               |
+|  7 | [braf](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/braf.html)      | Serine/threonine-protein kinase B-raf       | Kinase        |    128 | CHEMBL3638563                               |
+|  8 | [notum](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/notum.html)     | Palmitoleoyl-protein carboxylesterase NOTUM | Other Enzyme  |    128 | CHEMBL4619806; CHEMBL4334426                |
+|  9 | [mglur2](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/mglur2.html)    | Metabotropic glutamate receptor 2           | GPCR          |    244 | CHEMBL3886984                               |
 
 
 
