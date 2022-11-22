@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="data:image/vnd.microsoft.icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA25g0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAERAAAAAAAAAREAAAAAAAABEQAAAAAAAAERAAAAAAAAARERERAAAAABEREREAAAAAEREREQAAAAAREAAAAAAAABEQAAAAAAAAEREREQAAAAARERERAAAAABEREREAAAAAAAAAAAAAAAAAAAAAAAD//wAA//8AAPH/AADx/wAA8f8AAPH/AADwDwAA8A8AAPAPAADx/wAA8f8AAPAPAADwDwAA8A8AAP//AAD//wAA" />
+    <title></title>
+    <script src="https://unpkg.com/lore-engine@1.1.10/dist/lore.min.js"></script>
+    <script src="https://unpkg.com/smiles-drawer@1.2.0/dist/smiles-drawer.min.js"></script>
+    <link 
+      rel="stylesheet" 
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.css" 
+      integrity="sha256-piqEf7Ap7CMps8krDQsSOTZgF+MU/0MPyPW2enj5I40=" 
+      crossorigin="anonymous" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Open+Sans:400,600"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+        height: 100%;
+        user-select: none;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      #lore {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+      }
+
+      #title {
+        position: absolute;
+        z-index: 9999;
+        pointer-events: none;
+        text-height: 1;
+        opacity: 0.0;
+        transition: opacity 0.5s ease-in;
+        
+          padding-bottom: 20px;
+        
+          font-size: 1.0em;
+        
+          color: #888888;
+        
+          font-family: 'Open Sans';
+        
+      }
+
+      #x-axis {
+        position: absolute;
+        z-index: 9999;
+        pointer-events: none;
+        text-height: 1;
+        opacity: 0.0;
+        transition: opacity 0.5s ease-in;
+        
+          padding-top: 20px;
+        
+          font-size: 0.7em;
+        
+          color: #888888;
+        
+          font-family: 'Open Sans';
+        
+      }
+
+      #y-axis {
+        position: absolute;
+        z-index: 9999;
+        pointer-events: none;
+        text-height: 1;
+        transition: opacity 0.5s ease-in;
+        
+          padding-bottom: 20px;
+        
+          font-size: 0.7em;
+        
+          color: #888888;
+        
+          font-family: 'Open Sans';
+        
+          transform: rotate(-90deg);
+        
+      }
+
+      #tip {
+        position: absolute;
+        z-index: 9999;
+        padding: 5px;
+        font-family: 'Open Sans';
+        background-color: rgba(255, 255, 255, 1.0);
+        border-radius: 2px;
+        border-left: 5px solid #000;
+        pointer-events: none;
+        opacity: 0.0;
+        transition: opacity 0.1s ease-out;
+        filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 1.0));
+      }
+
+      #tip.show {
+        opacity: 1.0;
+        transition: opacity 0.1s ease-out;
+      }
+
+      #tip-text {
+        position: relative;
+        max-width: 250px;
+        font-size: 0.8em;
+        font-weight: bold;
+        white-space: normal;
+        line-break: normal;
+      }
+
+      #hover-indicator {
+        display: none;
+        position: absolute;
+        z-index: 999;
+        border: 1px solid #fff;
+        background-color: rgba(255, 255, 255, 0.25);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+
+      #hover-indicator.show {
+        display: block !important
+      }
+
+      .selected-indicator {
+        position: absolute;
+        z-index: 999;
+        pointer-events: none;
+      }
+
+      .selected-indicator .crosshair-x {
+        position: absolute;
+        top: 0; left: 0; bottom: 0; right: 0;
+        height: 2px;
+        width: 100%;
+        margin: auto;
+        
+          background-color: #fff;
+        
+      }
+
+      .selected-indicator .crosshair-y {
+        position: absolute;
+        top: 0; left: 0; bottom: 0; right: 0;
+        width: 2px;
+        height: 100%;
+        margin: auto;
+        
+          background-color: #fff;
+        
+      }
+
+      #legend {
+        position: absolute;
+        z-index: 9998;
+        
+          bottom: 10px;
+        
+          right: 10px;
+        
+          padding: 10px;
+        
+          border: 1px solid #262626;
+        
+          border-radius: 2px;
+        
+          background-color: #111111;
+        
+          filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.5));
+        
+          color: #eeeeee;
+        
+          font-family: 'Open Sans';
+        
+      }
+
+      #legend .container {
+        display: flex;
+        flex: auto;
+        align-items: flex-start;
+        
+        flex-direction: column;
+        
+      }
+
+      #legend .legend-section {
+        width: 100%;
+      }
+
+      #legend .legend-section:not(:first-child) {
+        
+      }
+
+      #legend h2 {
+        font-size: 1em;
+        font-weight: 600;
+        padding-top: 0;
+        margin-top: 0;
+        margin-bottom: 5px;
+        text-align: center;
+        max-width: 250px;
+        white-space: normal;
+      }
+
+      #legend h3 {
+        font-size: 0.8em;
+        margin-top: 10px;
+        margin-bottom: 0px;
+        max-width: 250px;
+        white-space: normal;
+      }
+
+      #legend select {
+        width: 100%;
+        margin-bottom: 5px;
+        background: transparent;
+        color: #fff;
+        border-radius: 2px;
+        font-size: 0.75em;
+      }
+
+      #legend select option {
+        background: #000;
+      }
+
+      #legend .legend-element, #legend .legend-element-range {
+        position: relative;
+        display: flex;
+        flex: auto;
+        align-items: flex-start;
+        padding-bottom: 2px;
+        padding-top: 2px;
+      }
+
+      #legend .legend-element {
+        align-items: flex-start;
+      }
+
+      #legend .legend-element-range {
+        flex-direction: column;
+      }
+
+      #legend .color-box {
+        
+          width: 15px;
+        
+          height: 15px;
+        
+          border: solid 0px;
+        
+      }
+
+      #legend .color-stripe {
+        
+          width: 15px;
+        
+          height: 1px;
+        
+          border: solid 0px;
+        
+      }
+
+      #legend .legend-label {
+        height: 15px;
+        font-size: 0.7em;
+        padding-left: 5px;
+      }
+
+      #legend .legend-label.max {
+        position: absolute;
+        top: 0px;
+        margin-left: 15px;
+      }
+
+      #legend .legend-label.min {
+        position: absolute;
+        bottom: 2px;
+        margin-left: 15px;
+      }
+
+      #selected {
+        position: absolute;
+        display: none;
+        z-index: 9998;
+        width: 250px;
+        
+          bottom: 10px;
+        
+          left: 10px;
+        
+          padding: 0px;
+        
+          border: 1px solid #262626;
+        
+          border-radius: 2px;
+        
+          background-color: #111111;
+        
+          filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.5));
+        
+          color: #eeeeee;
+        
+          font-family: 'Open Sans';
+        
+      }
+
+      #selected #selected-controls {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 5px 10px;
+        border-bottom: 1px solid #262626;
+        font-size: 0.8em;
+        font-weight: bold;
+      }
+
+      #selected #selected-controls * {
+        display: inline-block;
+      }
+
+      #selected #selected-controls #selected-title {
+        flex-grow: 1;
+        white-space: nowrap; 
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #aaa;
+      }
+
+      #selected #selected-controls a {
+        margin: 0px 2px;
+        font-size: 1.5em;
+        color: #fff;
+        opacity: 0.75;
+        transition: 0.2s;
+      }
+
+      #selected #selected-controls a:hover {
+        opacity: 1.0;
+      }
+
+      #selected #selected-controls a#selected-remove {
+        position: absolute;
+        right: 10px;
+        top: 42px;
+        color: #e74c3c;
+      }
+
+      #selected #selected-container {
+        padding: 10px;
+        font-size: 0.8em;
+      }
+
+      #selected #selected-container img {
+        margin-left: -10px;
+      }
+
+      #selected #selected-container .label {
+        font-weight: bold;
+        color: #aaa;
+        font-size: 0.7em;
+      }
+
+      #selected #selected-container .label:not(:first-child) {
+        margin-top: 2px;
+      }
+
+      #selected #selected-container .content {
+        white-space: nowrap; 
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      #selected #selected-container .content a {
+        text-decoration: none;
+        color: #3498db;
+      }
+
+      #controls {
+        position: absolute;
+        z-index: 9998;
+        
+          top: 10px;
+        
+          right: 10px;
+        
+          padding: 2px;
+        
+          border: 1px solid #262626;
+        
+          border-radius: 2px;
+        
+          background-color: #111111;
+        
+          filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.5));
+        
+          color: #eeeeee;
+        
+          font-family: 'Open Sans';
+        
+      }
+
+      #controls a {
+        display: inline-block;
+        padding: 5px 10px;
+        font-size: 1.2em;
+        color: #fff;
+        opacity: 0.75;
+        transition: 0.2s;
+      }
+
+      #controls a:hover {
+        opacity: 1.0;
+      }
+
+      #controls #more-controls {
+        display: inline-block;
+      }
+
+      #impress {
+        position: absolute;
+        z-index: 9999;
+        top: 10px;
+        left: 10px;
+        font-size: 0.7em;
+        color: #eee;
+      }
+
+      #impress a {
+        color: #3498db;
+        text-decoration: none;
+      }
+
+      #smiles-canvas {
+        position: absolute;
+        z-index: 9999;
+        left: -999px;
+        top: -999px;
+        width: 250px;
+        height: 250px;
+      }
+
+
+
+      #overlay-structure-container {
+        position: absolute;
+        z-index: 9999;
+        top: 50px;
+        left: 275px;
+        right: 100px;
+        bottom: 10px;
+        opacity: .5;
+        pointer-events: none;
+      }
+
+      #overlay-structure {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: auto;
+        margin-bottom: auto;
+      }
+
+
+
+
+
+      .show {
+        opacity: 1.0 !important;
+      }
+
+      .hide {
+        display: none !important;
+      }
+
+      @media only screen and (max-width: 600px) {
+        #selected {
+          position: absolute;
+          display: none;
+          z-index: 9998;
+          width: 125px;
+          opacity: 0.8;
+          background-filter: blur(10px);
+        }
+
+        #selected img {
+          width: 125px;
+        }
+
+        #tip {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas id="smiles-canvas" data-bind="smilesCanvas"></canvas>
+    
+    
+    
+    
+
+    <div id="overlay-structure-container" data-binding-id="overlayStructureContainer" class="">
+      <canvas id="overlay-structure" data-binding-id="overlayStructure" width="450" height="687">
+
+      </canvas></div>
+    </div>
+
+    <div id="tip" data-bind="tip">
+      <div id="tip-text" data-bind="tipText"></div>
+    </div>
+    <div id="selected" data-bind="selected">
+      <div id="selected-controls" data-bind="selectedControls">
+        <a id="selected-toggle" data-bind="selectedToggle" href="#">
+          <i class="fas fa-toggle-on"></i>
+        </a>
+        <span>&nbsp;&nbsp;</span>
+        <span id="selected-title" data-bind="selectedTitle"></span>
+        <span>&nbsp;&nbsp;</span>
+        <span id="selected-current" data-bind="selectedCurrent" data-bind="selectedCurrent">0</span><span> / </span><span id="selected-total" data-bind="selectedTotal">0</span>
+        <span>&nbsp;&nbsp;</span>
+        <a id="selected-prev" data-bind="selectedPrev" href="#">
+          <i class="fas fa-angle-left"></i>
+        </a>
+        <span>&nbsp;</span>
+        <a id="selected-next" data-bind="selectedNext" href="#">
+          <i class="fas fa-angle-right"></i>
+        </a>
+        <a id="selected-remove" data-bind="selectedRemove" href="#">
+          <i class="fas fa-times"></i>
+        </a>
+      </div>
+      <div id="selected-container" data-bind="selectedContainer">
+      </div>
+    </div>
+    <div id="controls" data-bind="controls">
+      <div id="more-controls" data-bind="moreControls" class="hide">
+        <a id="search" data-bind="search" href="#">
+          <i class="fas fa-search"></i>
+        </a>
+        <a id="download" data-bind="download" href="#">
+          <i class="fas fa-download"></i>
+        </a>
+        <a id="export" data-bind="export" href="#">
+          <i class="fas fa-camera"></i>
+        </a>
+        <a id="largepreview" data-bind="largepreview" href="#">
+          <i class="fas fa-expand"></i>
+        </a>
+      </div>
+      <a id="show-controls" data-bind="showControls" href="#">
+        <i class="fas fa-bars"></i>
+      </a>
+    </div>
+    <div id="hover-indicator" data-bind="hoverIndicator"></div>
+    <canvas id="lore"></canvas>
+
+    
+    <script>
+      const data = {
+CHEMBL1871_Ki: {
+x: [473.112,477.199,473.07,518.832,526.063,513.406,472.787,518.036,448.692,451.321,455.675,448.832,446.361,444.669,450.33,514.872,456.045,683.776,518.837,659.515,552.414,585.405,566.763,671.807,656.757,558.179,468.067,567.95,567.421,608.473,663.294,680.251,470.5,577.221,551.893,710.727,567.649,667.397,593.979,653.459,557.153,604.231,653.008,560.857,695.316,623.706,571.734,570.963,664.951,622.408,699.259,658.413,717.002,702.324,685.159,659.594,541.63,676.275,636.801,686.302,665.797,664.142,732.602,595.506,683.582,650.64,119.473,110.831,144.707,106.003,149.444,153.221,147.272,518.924,129.702,111.592,136.963,155.11,155.071,117.268,141.7,149.555,138.236,572.933,707.055,629.038,602.815,612.271,625.442,735.846,604.78,748.017,712.765,601.152,607.778,567.988,741.386,729.936,750.0,572.24,743.713,696.9,719.026,576.965,626.688,717.593,575.122,701.696,704.882,707.679,732.631,711.427,683.718,529.823,747.294,625.147,629.706,628.08,590.748,608.746,591.812,644.146,610.984,637.428,473.347,496.593,235.802,473.302,505.491,597.567,586.086,557.528,571.517,628.062,557.178,576.189,577.094,624.791,578.82,632.159,557.329,220.092,610.904,635.306,671.989,645.513,657.694,638.967,701.277,640.73,644.618,689.842,701.532,617.248,683.858,689.509,571.71,471.204,489.476,473.308,474.469,515.943,506.2,572.578,536.105,560.096,551.984,524.091,568.199,561.415,534.447,522.038,549.335,375.769,379.197,365.129,369.311,380.457,606.43,604.544,163.68,238.444,243.209,238.004,241.877,245.922,158.985,222.471,180.555,200.911,567.987,635.579,620.207,608.35,608.219,585.63,596.954,588.907,605.175,577.044,630.565,636.449,383.328,379.893,378.723,378.67,270.025,251.727,299.005,301.704,297.221,322.446,319.714,275.729,316.803,314.658,334.489,328.291,372.878,241.958,482.866,469.597,504.221,504.635,500.588,494.668,500.582,498.462,518.057,474.874,474.629,474.695,477.39,488.683,491.778,494.963,477.247,483.399,488.828,489.007,481.998,537.451,308.508,400.851,429.449,288.005,283.43,358.716,362.2,384.663,387.026,370.942,373.934,369.701,376.226,279.831,288.05,283.986,281.322,378.624,354.279,357.601,423.958,419.294,408.77,411.983,403.188,332.432,391.649,396.469,389.162,381.909,396.417,279.985,390.878,367.777,304.971,284.097,273.553,289.243,288.291,322.408,366.863,356.515,373.644,369.755,426.131,337.737,342.946,372.503,374.473,374.94,396.726,371.144,354.107,317.436,350.142,435.595,423.945,463.761,448.228,392.606,378.671,362.494,387.455,368.662,383.922,388.32,438.191,467.068,461.897,455.281,228.194,229.87,232.198,226.281,237.136,214.727,220.952,232.021,232.952,234.467,239.692,271.927,232.47,246.077,246.137,229.588,236.639,266.107,252.057,259.595,245.856,264.026,249.941,273.384,260.289,256.208,266.285,271.404,269.228,220.235,255.111,250.708,449.808,444.771,406.281,410.413,518.784,444.492,421.942,478.935,496.641,509.26,504.351,403.452,435.842,431.806,378.615,378.698,430.665,378.591,406.44,378.641,419.727,425.998,411.506,383.171,358.471,334.659,287.232,311.178,336.184,317.205,319.136,321.042,324.654,350.653,351.504,333.84,429.057,500.567,503.131,504.695,508.205,378.588,411.369,426.175,379.513,384.158,398.824,393.752,424.91,397.555,402.909,401.803,374.623,378.185,379.606,365.38,370.946,378.729,378.585,378.325,378.654,378.712,694.907,695.201,706.223,701.685,130.426,136.13,143.083,148.703,128.915,112.472,149.793,168.428,159.697,169.334,120.787,119.209,124.084,139.587,119.63,129.359,123.494,177.435,181.923,142.862,105.677,0.0,5.536,13.766,473.097,467.927,459.112,463.247,420.582,227.827,225.244,225.701,219.354,249.911,241.918,174.826,416.815,407.058,15.163,8.906,25.072,14.71,73.051,72.349,70.716,72.283,67.413,72.486,62.838,44.416,39.207,38.716,33.819,45.905,33.178,43.63,75.888,55.071,49.801,42.367,46.877,146.811,159.475,150.552,157.955,142.936,97.35,166.929,164.479,126.794,44.86,35.527,33.722,415.607,424.174,429.186,440.864,434.847,397.231,393.577,391.991,316.239,374.883,320.187,300.399,330.199,334.467,352.538,320.242,372.672,284.001,266.887,402.209,397.128,413.23,416.773,420.257,379.452,382.58,387.696,396.614,394.832,688.721,39.639,37.088,43.531,54.362,336.919,8.054,463.33,517.477,683.524,675.421,679.104,668.305,675.101,666.26,672.017,165.114,173.411,169.51,45.283,65.894,55.886,75.858,34.324,23.596,431.234,658.688,86.499,82.073,512.364,324.801,329.93,338.27,349.804,280.782,278.04,258.612,278.051,257.503,279.56,242.494,253.198,216.434,229.238,273.185,214.081,186.859,167.657,175.227,179.878,183.601,203.081,185.713,187.361,189.122,181.861,182.681,188.591,187.454,189.3,189.903,189.341,287.747,273.955,279.52,300.475,283.997,299.682,315.174,295.511,519.776,282.753,286.821,327.589,290.342,296.107,331.177,283.975,284.029,311.241,288.032,332.063,332.579,330.17,333.201,469.853,473.304,473.68,442.535,493.74,535.285,499.114,496.478,531.435,545.783,551.698,552.338,514.101,459.011,452.457,561.92,269.564,266.401,272.765,252.675,243.407,277.249,267.945,257.438,259.613,261.028,237.517,659.812,661.878,232.059,179.561,185.317,189.305,189.215,189.304,185.991,208.354,198.575,193.551,190.756,67.199,171.913,97.814,110.294,107.537,101.386,81.842,121.268,154.87,146.914,111.032,97.692,103.69,163.501,97.351,85.936,92.115,108.371,121.721,115.041,102.696,193.637],
+y: [9.201,22.361,25.234,56.919,659.435,59.079,15.267,629.152,155.687,134.923,137.69,160.797,136.23,141.518,142.531,660.425,143.355,466.053,607.398,290.22,432.362,406.002,433.307,473.13,294.441,430.551,61.05,327.983,428.469,390.132,478.83,468.787,56.163,426.673,590.285,273.721,570.641,413.292,359.239,428.063,611.936,326.169,421.921,578.83,457.472,391.288,323.822,565.643,292.431,395.898,278.844,423.521,270.804,274.062,282.037,428.998,605.312,430.667,401.216,443.65,299.689,417.993,450.985,384.256,287.404,408.061,411.838,390.219,473.013,392.804,442.182,474.659,476.425,601.018,429.674,397.435,452.956,443.989,438.175,407.005,450.705,435.87,446.469,460.597,328.089,270.017,321.054,231.385,237.617,457.916,229.509,346.417,463.577,316.408,225.21,465.115,449.162,455.95,340.623,468.269,341.688,327.962,332.538,465.683,242.04,464.282,445.226,326.261,321.69,493.456,337.618,479.032,313.012,664.046,445.306,100.324,103.629,95.299,105.594,103.642,101.078,97.257,99.53,98.251,37.108,64.596,424.524,49.514,62.02,357.347,365.353,312.301,374.746,292.97,303.711,314.677,371.303,288.571,319.46,298.93,297.74,440.152,245.017,216.431,193.857,221.371,202.301,212.252,343.197,219.27,214.463,187.506,336.882,244.008,187.534,182.661,106.529,161.29,159.77,169.943,175.81,79.927,156.409,149.531,140.117,136.815,108.552,155.668,144.747,141.565,93.763,150.365,128.049,618.574,615.239,618.353,627.419,622.405,687.372,693.386,578.307,646.228,644.323,662.738,658.998,628.357,576.954,616.403,590.576,603.82,622.771,655.211,661.3,664.31,676.702,646.541,655.919,643.853,680.16,634.318,658.784,660.717,373.786,382.481,395.248,389.913,436.992,262.862,365.519,356.635,371.735,366.009,372.839,296.758,366.471,371.914,374.998,373.096,632.791,670.36,295.477,282.443,258.041,246.978,286.27,329.456,290.6,307.305,309.052,429.97,424.116,415.165,403.8,377.396,350.849,374.998,392.351,374.143,367.84,372.399,389.726,310.513,281.313,326.567,267.375,275.948,272.324,291.656,282.744,365.111,360.679,272.416,281.245,278.04,276.205,319.518,341.808,353.332,363.562,322.206,305.493,301.971,281.219,280.789,293.066,363.476,354.854,291.054,323.459,301.929,347.943,318.541,306.289,370.062,343.745,718.37,665.311,647.061,627.06,646.801,652.191,682.576,713.661,724.333,740.958,707.0,702.558,700.425,698.528,700.65,695.795,747.607,708.614,729.389,731.021,684.914,727.282,716.635,695.119,664.672,684.101,14.068,13.815,11.873,5.321,12.841,0.0,16.836,253.991,270.705,269.842,268.302,221.96,230.14,219.463,226.33,218.853,208.162,214.304,200.002,208.623,226.742,223.079,252.538,278.91,264.285,258.436,274.621,272.226,234.965,256.971,242.384,283.966,238.389,278.641,257.474,234.455,265.204,257.374,300.716,294.424,265.026,282.13,285.995,40.661,42.093,24.748,22.288,641.319,728.635,687.7,647.951,631.943,611.131,606.911,536.414,574.291,569.471,567.426,562.446,562.513,556.84,531.918,552.926,545.121,560.401,526.428,544.821,559.472,573.545,605.267,591.046,605.049,583.163,588.886,597.035,598.954,614.892,610.572,568.165,31.482,268.814,273.366,240.435,271.01,230.214,208.788,230.914,187.518,191.369,187.516,187.521,157.254,155.434,153.846,159.779,167.461,161.455,167.322,218.361,217.802,212.205,216.08,198.19,202.683,224.67,520.052,524.473,509.465,507.142,562.492,562.53,562.365,562.282,587.589,612.58,665.914,694.252,677.87,688.89,618.028,623.049,612.159,652.45,649.935,636.255,644.733,697.992,703.057,566.94,613.734,323.248,324.542,325.543,695.774,692.407,687.749,684.511,682.27,425.007,443.461,437.195,412.032,434.286,676.949,688.487,368.564,328.028,465.332,461.927,471.314,473.953,529.686,523.504,513.905,502.422,501.394,492.906,498.943,474.961,449.16,441.804,443.398,470.615,448.537,442.746,487.838,513.118,514.785,527.25,522.18,502.006,499.212,505.086,509.271,504.425,514.881,498.285,512.773,527.551,448.007,432.417,424.373,528.959,518.193,518.215,508.675,512.14,499.958,502.626,473.043,463.468,492.531,466.759,453.695,475.187,472.421,483.491,459.526,488.831,446.284,440.571,479.19,475.111,471.144,466.712,469.182,442.264,447.296,455.089,460.472,465.36,532.778,258.215,263.615,263.236,267.594,105.715,474.978,750.0,617.063,543.585,561.868,553.18,574.879,574.793,568.838,569.799,266.818,270.64,268.733,319.737,304.02,313.151,292.74,323.755,325.507,229.128,482.569,302.228,298.37,665.744,179.316,175.088,167.936,159.645,38.336,44.838,54.21,53.883,59.9,70.291,65.447,56.315,80.335,72.318,56.87,76.175,98.89,92.433,93.52,79.338,84.907,87.647,92.213,129.611,148.214,114.989,133.578,141.71,112.861,117.1,133.941,94.997,468.788,468.908,468.761,472.786,472.333,478.707,475.591,474.976,653.297,84.876,81.931,133.182,129.547,127.081,104.775,89.318,99.358,137.563,113.421,133.564,121.303,145.618,110.631,525.085,529.406,521.437,526.743,522.927,516.168,524.606,518.001,519.469,518.261,515.405,520.503,520.827,745.613,738.339,608.286,541.893,547.032,547.311,563.476,562.525,595.25,585.08,553.203,574.643,555.388,562.53,193.074,187.563,427.757,328.323,341.164,354.545,363.126,358.869,381.012,397.849,384.145,370.537,383.146,272.417,315.504,270.637,185.192,190.686,267.841,277.571,262.629,286.984,271.018,236.24,204.144,196.491,301.822,198.254,186.427,191.441,219.758,258.426,238.732,201.53,267.122],
+z: [375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0],
+labels: ['CC1=CC(C)(C)Nc2ccc3c(c21)/C(=C/c1ccsc1)Oc1ccc(F)cc1-3__0__CHEMBL1871_Ki: 669.0000000000002 nM','CCc1ccccc1/C=C1\Oc2ccc(F)cc2-c2ccc3c(c21)C(C)=CC(C)(C)N3__1__CHEMBL1871_Ki: 1588.9999999999993 nM','CC1=CC(C)(C)Nc2ccc3c(c21)/C(=C/c1ccccc1N(C)C)Oc1ccc(F)cc1-3__2__CHEMBL1871_Ki: 819.0000000000003 nM','CC1=CC(C)(C)Nc2ccc3c(c21)/C(=C/c1ccccc1)Oc1c(F)cccc1-3__3__CHEMBL1871_Ki: 1456.0000000000002 nM','CC(=O)O[C@]1(C(C)=O)CC[C@H]2[C@@H]3C[C@H](C)C4=CC(=O)CC[C@]4(C)[C@H]3CC[C@@]21C__4__CHEMBL1871_Ki: 2.9 nM','CC1=CC(C)(C)Nc2ccc3c(c21)/C(=C/c1ccccc1C)Oc1c(F)cccc1-3__5__CHEMBL1871_Ki: 960.0 nM','COc1ccccc1/C=C1\Oc2ccc(F)cc2-c2ccc3c(c21)C(C)=CC(C)(C)N3__6__CHEMBL1871_Ki: 439.0 nM','CC(=O)[C@H]1CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@]4(C)[C@H]3CC[C@]12C__7__CHEMBL1871_Ki: 8.5 nM','C=CCC1Oc2cccc(OC)c2-c2ccc3c(c21)C(C)=CC(C)(C)N3__8__CHEMBL1871_Ki: 1230.0000000000005 nM','C=CCC1Oc2cccc(NC)c2-c2ccc3c(c21)C(C)=CC(C)(C)N3__9__CHEMBL1871_Ki: 2590.0000000000005 nM','C=CCC1Oc2cccc(CO)c2-c2ccc3c(c21)C(C)=CC(C)(C)N3__10__CHEMBL1871_Ki: 1320.0000000000005 nM','C=CCC1Oc2cccc(OC(F)F)c2-c2ccc3c(c21)C(C)=CC(C)(C)N3__11__CHEMBL1871_Ki: 96.3 nM','C=CCC1Oc2cccc(SC)c2-c2ccc3c(c21)C(C)=CC(C)(C)N3__12__CHEMBL1871_Ki: 2460.000000000001 nM','C#Cc1cccc2c1-c1ccc3c(c1C(CC=C)O2)C(C)=CC(C)(C)N3__13__CHEMBL1871_Ki: 650.0000000000002 nM','C=CCC1Oc2cccc(O)c2-c2ccc3c(c21)C(C)=CC(C)(C)N3__14__CHEMBL1871_Ki: 2059.9999999999995 nM','C[C@]12C[C@H](O)[C@H]3[C@@H](CCC4=CC(=O)C=C[C@@]43C)[C@@H]1CC[C@]2(O)C(=O)CO__15__CHEMBL1871_Ki: 2761.0000000000014 nM','C=CCC1Oc2cccc(C=C)c2-c2ccc3c(c21)C(C)=CC(C)(C)N3__16__CHEMBL1871_Ki: 238.99999999999991 nM','CCC1CCNc2cc3c(cc21)c(C(F)(F)F)cc(=O)n3C__17__CHEMBL1871_Ki: 9.0 nM','C[C@]12CC[C@H]3[C@@H](CC[C@H]4CC(=O)CC[C@@]43C)[C@@H]1CC[C@@H]2O__18__CHEMBL1871_Ki: 1.2461538461538462 nM','CC1(C)CCNc2cc3nc(O)cc(C(F)(F)F)c3cc21__19__CHEMBL1871_Ki: 12.000000000000002 nM','C[C@H]1CNc2cc3nc(O)cc(C(F)(F)F)c3cc2C1CCC(F)(F)F__20__CHEMBL1871_Ki: 2.0 nM','CC1CCNc2cc3nc(O)cc(C(F)(F)F)c3cc21__21__CHEMBL1871_Ki: 9.0 nM','CCCC1CCNc2cc3nc(O)cc(C(F)(F)F)c3cc21__22__CHEMBL1871_Ki: 29.0 nM','CCC1CCN(C)c2cc3c(cc21)c(C(F)(F)F)cc(=O)n3C__23__CHEMBL1871_Ki: 263.00000000000006 nM','CCC1(CC)CCNc2cc3nc(O)cc(C(F)(F)F)c3cc21__24__CHEMBL1871_Ki: 58.00000000000001 nM','CC(C)C[C@H]1c2cc3c(C(F)(F)F)cc(O)nc3cc2NC[C@@H]1C__25__CHEMBL1871_Ki: 72.00000000000001 nM','CC1C(=O)C(C)(C)Nc2ccc3c(c21)/C(=C/c1ccccc1)Oc1ccccc1-3__26__CHEMBL1871_Ki: 1196.0 nM','Oc1cc(C(F)(F)F)c2cc3c(cc2n1)NCCC3__27__CHEMBL1871_Ki: 19.0 nM','CC(C)CC1CCNc2cc3nc(O)cc(C(F)(F)F)c3cc21__28__CHEMBL1871_Ki: 22.0 nM','Oc1cc(C(F)(F)F)c2cc3c(cc2n1)NC[C@@H]1CCC[C@H]31__29__CHEMBL1871_Ki: 7.999999999999999 nM','CCC1CCN(C)c2cc3nc(O)cc(C(F)(F)F)c3cc21__30__CHEMBL1871_Ki: 630.0 nM','CCC1CCNc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc21__31__CHEMBL1871_Ki: 11.666666666666664 nM','CC1C(=O)C(C)(C)Nc2ccc3c(c21)/C(=C/c1cccc(F)c1)Oc1ccccc1-3__32__CHEMBL1871_Ki: 559.9999999999999 nM','CC(C)C1CCNc2cc3nc(O)cc(C(F)(F)F)c3cc21__33__CHEMBL1871_Ki: 12.999999999999998 nM','O=C1C=C2CCc3cc(O)ccc3[C@]2(Cc2ccccc2)CC1__34__CHEMBL1871_Ki: 179.99999999999997 nM','C[C@H]1Nc2cc3c(cc2C1(C)C)c(C(F)(F)F)cc(=O)n3C__35__CHEMBL1871_Ki: 9.0 nM','Oc1ccc2c(c1)CC[C@@H]1C[C@@](O)(C#CCl)CC[C@@]21Cc1ccccc1__36__CHEMBL1871_Ki: 130.00000000000006 nM','CCn1c(=O)cc(C(F)(F)F)c2cc3c(cc21)N[C@@H]1CCCC[C@H]31__37__CHEMBL1871_Ki: 194.0 nM','C[C@H]1Nc2cc3nc(O)cc(C(F)(F)F)c3cc2[C@H]1C__38__CHEMBL1871_Ki: 6.0 nM','C[C@H]1CC[C@@H]2[C@H](C1)c1cc3c(C(F)(F)F)cc(=O)n(C)c3cc1N2C__39__CHEMBL1871_Ki: 77.99999999999999 nM','CC#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)C)cc3)C[C@@]21C__40__CHEMBL1871_Ki: 8.700000000000001 nM','C[C@@H]1Cc2cc3c(C(F)(F)F)cc(O)nc3cc2N1__41__CHEMBL1871_Ki: 10.0 nM','CCCN1c2cc3c(cc2[C@H]2CCCC[C@H]21)c(C(F)(F)F)cc(=O)n3C__42__CHEMBL1871_Ki: 63.0 nM','O=C1CC[C@@]2(Cc3ccccc3)c3ccc(O)cc3CC[C@@H]2C1__43__CHEMBL1871_Ki: 1300.0000000000005 nM','Cn1c(=O)cc(C(F)(F)F)c2cc3c(cc21)NCC3__44__CHEMBL1871_Ki: 61.00000000000002 nM','CC1(C)CCC[C@@H]2c3cc4c(C(F)(F)F)cc(O)nc4cc3N[C@@H]21__45__CHEMBL1871_Ki: 78.99999999999999 nM','Oc1cc(C(F)(F)F)c2cc3c(cc2n1)NCC3__46__CHEMBL1871_Ki: 40.99999999999999 nM','CC#C[C@@]1(O)CC[C@@]2(Cc3ccccc3)c3ccc(O)cc3CC[C@@H]2C1__47__CHEMBL1871_Ki: 650.0000000000002 nM','CC1(C)CNc2cc3nc(O)cc(C(F)(F)F)c3cc21__48__CHEMBL1871_Ki: 28.0 nM','Oc1cc(C(F)(F)F)c2cc3c(cc2n1)N[C@@H]1CCCC[C@H]31__49__CHEMBL1871_Ki: 5.000000000000001 nM','Cn1c(=O)cc(C(F)(F)F)c2cc3c(cc21)N[C@@H]1CCCC[C@]31C__50__CHEMBL1871_Ki: 9.0 nM','CN1c2cc3c(cc2[C@H]2CCCC[C@H]21)c(C(F)(F)F)cc(=O)n3C__51__CHEMBL1871_Ki: 10.0 nM','C[C@H]1N(C)c2cc3c(cc2C1(C)C)c(C(F)(F)F)cc(=O)n3C__52__CHEMBL1871_Ki: 33.0 nM','CN1c2cc3c(cc2[C@@]2(C)CCCC[C@@H]12)c(C(F)(F)F)cc(=O)n3C__53__CHEMBL1871_Ki: 97.0 nM','CC1(C)CCC[C@]2(C)c3cc4c(C(F)(F)F)cc(O)nc4cc3N[C@H]12__54__CHEMBL1871_Ki: 77.0 nM','CN1c2cc3c(cc2[C@H]2CCCC(C)(C)[C@H]21)c(C(F)(F)F)cc(=O)n3C__55__CHEMBL1871_Ki: 59.00000000000001 nM','CC#C[C@]1(O)CCC2C3CCC4=CC(=O)CC[C@]4(Cc4ccc(C)cc4)C3=CC[C@@]21C__56__CHEMBL1871_Ki: 89.99999999999996 nM','C[C@H]1Nc2cc3c(cc2[C@H]1C)c(C(F)(F)F)cc(=O)n3C__57__CHEMBL1871_Ki: 10.0 nM','C[C@H]1CC[C@H]2Nc3cc4nc(O)cc(C(F)(F)F)c4cc3[C@H]2C1__58__CHEMBL1871_Ki: 23.0 nM','C[C@@H]1Cc2cc3c(C(F)(F)F)cc(=O)n(C)c3cc2N1__59__CHEMBL1871_Ki: 9.0 nM','C[C@H]1Nc2cc3nc(O)cc(C(F)(F)F)c3cc2C1(C)C__60__CHEMBL1871_Ki: 21.0 nM','Cn1c(=O)cc(C(F)(F)F)c2cc3c(cc21)N[C@@H]1CCCC[C@H]31__61__CHEMBL1871_Ki: 4.0 nM','CN1CCc2cc3c(C(F)(F)F)cc(=O)n(C)c3cc21__62__CHEMBL1871_Ki: 167.0 nM','C[C@@H]1CNc2cc3nc(O)cc(C(F)(F)F)c3cc21__63__CHEMBL1871_Ki: 17.0 nM','C[C@]12CCCC[C@H]1Nc1cc3nc(O)cc(C(F)(F)F)c3cc12__64__CHEMBL1871_Ki: 21.0 nM','C[C@H]1CC[C@H]2Nc3cc4c(cc3[C@H]2C1)c(C(F)(F)F)cc(=O)n4C__65__CHEMBL1871_Ki: 93.99999999999996 nM','C=C1CCC(C)(C)C1Cc1cc(OC)c(Br)cc1O__66__CHEMBL1871_Ki: 1923.0 nM','C=C1C[C@H](CO)CC(C)(C)[C@@H]1Cc1cc(OC)c(Br)cc1O__67__CHEMBL1871_Ki: 6809.999999999999 nM','C=C1C=C(C)CC(C)(C)C1(O)Cc1ccc([N+](=O)[O-])cc1__68__CHEMBL1871_Ki: 6454.0 nM','C=C1C[C@H](C)C[C@@H](C)[C@@H]1Cc1cc(OC)c(Br)cc1O__69__CHEMBL1871_Ki: 1139.0000000000005 nM','C=C1C=C(C)CC(C)(C)C1Cc1cc(OC)c(Br)cc1OC(C)=O__70__CHEMBL1871_Ki: 1941.9999999999993 nM','C=C1C=C(C)CC(C)(C)C1Cc1ccc([N+](=O)[O-])c(C)c1__71__CHEMBL1871_Ki: 2698.000000000001 nM','C=C1C=C(C)CC(C)(C)C1Cc1ccc([N+](=O)[O-])cc1__72__CHEMBL1871_Ki: 6303.000000000003 nM','C=C1CC[C@H](O)C/C1=C/C=C1\CCCC2(C)C1CCC2C(C)/C=C/C(C)C(C)C__73__CHEMBL1871_Ki: 1.1 nM','C=C1C=CCC(C)(C)C1Cc1cc(OC)c(Br)cc1O__74__CHEMBL1871_Ki: 1517.9999999999993 nM','C=C1C[C@H](C)CC(C)(C)[C@@H]1Cc1cc(OC)c(Br)cc1O__75__CHEMBL1871_Ki: 695.9999999999997 nM','C=C1C=C(C)CC(C)(C)C1C/C=C/c1cc(OC)c(Br)cc1O__76__CHEMBL1871_Ki: 2318.0000000000005 nM','C=C1C=C(C)C[C@@H](C)[C@@H]1Cc1cc(OC)c(Br)cc1OC(C)=O__77__CHEMBL1871_Ki: 1497.0 nM','COc1cc(CC2C(C)(C)CC(C)=CC23CC3)c(OC(C)=O)cc1Br__78__CHEMBL1871_Ki: 3007.9999999999995 nM','C=C1[C@@H](Cc2cc(OC)c(Br)cc2O)C(C)(C)CC[C@@]1(C)O__79__CHEMBL1871_Ki: 6662.000000000003 nM','C=C1C=C(C)CC(C)(C)C1Cc1cc(OC)c(Br)cc1O__80__CHEMBL1871_Ki: 1449.0000000000007 nM','C=C1C(C)=CCC(C)(C)[C@@H]1Cc1cc(OC)c(Br)cc1OC(C)=O__81__CHEMBL1871_Ki: 6386.999999999997 nM','C=C1C=C(C)C(Cc2cc(OC)c(Br)cc2O)C(C)(C)C1__82__CHEMBL1871_Ki: 1591.0000000000007 nM','CC1CC(C)(C)Nc2cc3nc(O)cc(C(F)(F)F)c3cc21__83__CHEMBL1871_Ki: 76.0 nM','CC1=CC(C)(C)Nc2cc3nc(O)cc(C)c3cc21__84__CHEMBL1871_Ki: 62.0 nM','CC1(C)Cc2cc3c(C(F)(F)F)cc(O)nc3cc2NC1(C)C__85__CHEMBL1871_Ki: 189.00000000000009 nM','CC1Cc2cc3c(C(F)(F)F)cc(O)nc3cc2NC1(C)C__86__CHEMBL1871_Ki: 73.0 nM','CCC1(C)CCc2cc3c(C(F)(F)F)cc(O)nc3cc2N1__87__CHEMBL1871_Ki: 29.0 nM','Oc1cc(C(F)(F)F)c2cc3c(cc2n1)NC1(CCCCC1)CC3__88__CHEMBL1871_Ki: 9.0 nM','CCC1(C)CCc2cc3c(C(F)(F)F)cc(=O)n(C)c3cc2N1C__89__CHEMBL1871_Ki: 10.0 nM','CCC1(CC)CCc2cc3c(C(F)(F)F)cc(O)nc3cc2N1__90__CHEMBL1871_Ki: 102.0 nM','CCn1c(=O)cc(C(F)(F)F)c2cc3c(cc21)NC(C)(C)C=C3C__91__CHEMBL1871_Ki: 670.0 nM','Cn1c(=O)cc(C(F)(F)F)c2cc3c(cc21)NC(C)(C)CC3__92__CHEMBL1871_Ki: 56.00000000000001 nM','CCC1Cc2cc3c(C(F)(F)F)cc(O)nc3cc2NC1(C)C__93__CHEMBL1871_Ki: 250.99999999999991 nM','CCCC1(C)CCc2cc3c(C(F)(F)F)cc(O)nc3cc2N1__94__CHEMBL1871_Ki: 68.99999999999999 nM','CC1c2cc3c(C(F)(F)F)cc(O)nc3cc2NC(C)(C)C1(C)C__95__CHEMBL1871_Ki: 358.00000000000017 nM','Cn1c(=O)cc(C(F)(F)F)c2cc3c(cc21)N1CCCC1(C)CC3__96__CHEMBL1871_Ki: 77.99999999999999 nM','CN1c2cc3c(cc2CCC1(C)C)c(C(F)(F)F)cc(=O)n3C__97__CHEMBL1871_Ki: 17.0 nM','CC1=CC(C)(C)Nc2c1cc1c(C(F)(F)F)cc(=O)n(C)c1c2C__98__CHEMBL1871_Ki: 874.0000000000003 nM','Cc1c2c(cc3c(C(F)(F)F)cc(O)nc13)C(C)CC(C)(C)N2__99__CHEMBL1871_Ki: 85.00000000000003 nM','CC1=CC(C)(C)Nc2cc3c(cc21)c(C(F)(F)F)cc(=O)n3C__100__CHEMBL1871_Ki: 81.0 nM','CC1=CC(C)(C)Nc2c1cc1c(C(F)(F)F)cc(O)nc1c2C__101__CHEMBL1871_Ki: 82.0 nM','CC1=CC(C)(C)N(C)c2cc3nc(O)cc(C(F)(F)F)c3cc21__102__CHEMBL1871_Ki: 694.9999999999997 nM','CCC1CC(C)(C)Nc2cc3nc(O)cc(C(F)(F)F)c3cc21__103__CHEMBL1871_Ki: 54.00000000000002 nM','CC1(C)CCc2cc3c(C(F)(F)F)cc(O)nc3cc2N1__104__CHEMBL1871_Ki: 26.0 nM','CCC1(C)CCc2cc3c(C(F)(F)F)cc(=O)n(C)c3cc2N1__105__CHEMBL1871_Ki: 68.99999999999999 nM','CC(C)C1CC(C)(C)Nc2cc3nc(O)cc(C(F)(F)F)c3cc21__106__CHEMBL1871_Ki: 650.0000000000002 nM','CC1=CC(C)(C)Nc2cc3nc(O)cc(C(F)(F)F)c3cc21__107__CHEMBL1871_Ki: 115.00000000000004 nM','CC1=C(C)C(C)(C)Nc2cc3nc(O)cc(C(F)(F)F)c3cc21__108__CHEMBL1871_Ki: 268.00000000000006 nM','Cc1c2c(cc3c(C(F)(F)F)cc(=O)n(C)c13)C(C)CC(C)(C)N2__109__CHEMBL1871_Ki: 40.000000000000014 nM','CC1=CC(C)(C)N(C)c2cc3c(cc21)c(C(F)(F)F)cc(=O)n3C__110__CHEMBL1871_Ki: 38.99999999999999 nM','CC1CC(C)(C)Nc2cc3c(cc21)c(C(F)(F)F)cc(=O)n3C__111__CHEMBL1871_Ki: 46.0 nM','CC1(C)C=Cc2cc3c(C(F)(F)F)cc(O)nc3cc2N1__112__CHEMBL1871_Ki: 79.5 nM','CC(=O)O[C@]1(C(C)=O)CC[C@H]2[C@@H]3C=C(Cl)C4=CC(=O)[C@@H]5C[C@@H]5[C@]4(C)[C@H]3CC[C@@]21C__113__CHEMBL1871_Ki: 13.999999999999998 nM','CC12CCCN1c1cc3nc(O)cc(C(F)(F)F)c3cc1CC2__114__CHEMBL1871_Ki: 168.99999999999997 nM','CCCCC1Oc2ccc(C)cc2-c2ccc3c(c21)C(C)=CC(C)(C)N3__115__CHEMBL1871_Ki: 903.0 nM','CCCCC1Oc2ccc(OC)cc2-c2ccc3c(c21)C(C)=CC(C)(C)N3__116__CHEMBL1871_Ki: 784.9999999999995 nM','CCCCC1Oc2ccc(F)cc2-c2ccc3c(c21)C(C)=CC(C)(C)N3__117__CHEMBL1871_Ki: 1330.0 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(C)Oc1ccc(Cl)cc1-3__118__CHEMBL1871_Ki: 620.9999999999998 nM','CCCCC1Oc2ccc(Cl)cc2-c2ccc3c(c21)C(C)=CC(C)(C)N3__119__CHEMBL1871_Ki: 886.0 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(C)Oc1ccc(F)cc1-3__120__CHEMBL1871_Ki: 456.00000000000017 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(CCC(C)C)Oc1ccccc1-3__121__CHEMBL1871_Ki: 1484.9999999999993 nM','CCCOC1Oc2ccc(Cl)cc2-c2ccc3c(c21)C(C)=CC(C)(C)N3__122__CHEMBL1871_Ki: 697.0000000000003 nM','CCCCC1Oc2ccccc2-c2ccc3c(c21)C(C)=CC(C)(C)N3__123__CHEMBL1871_Ki: 2046.0 nM','CC1=CC(C)(C)Nc2ccc3c(c21)/C(=C/c1cc(F)ccc1F)Oc1ccccc1-3__124__CHEMBL1871_Ki: 886.9999999999997 nM','CC1=CC(C)(C)Nc2ccc3c(c21)/C(=C/c1ccccc1)Oc1ccccc1-3__125__CHEMBL1871_Ki: 2660.0000000000005 nM','C[C@](O)(CBr)C(=O)Nc1ccc(N)c(C(F)(F)F)c1__126__CHEMBL1871_Ki: 80.89999999999998 nM','CC1=CC(C)(C)Nc2ccc3c(c21)/C(=C/c1cccc(F)c1)Oc1ccccc1-3__127__CHEMBL1871_Ki: 798.0000000000003 nM','CC1=CC(C)(C)Nc2ccc3c(c21)/C(=C/c1ccccc1C)Oc1ccccc1-3__128__CHEMBL1871_Ki: 844.0000000000001 nM','C[C@H]1C[C@@H](C)Nc2cc3nc(O)cc(C(F)(F)F)c3cc21__129__CHEMBL1871_Ki: 6.0 nM','CC[C@@H]1C[C@H](C)c2cc3c(C(F)(F)F)cc(O)nc3cc2N1__130__CHEMBL1871_Ki: 21.0 nM','CC[C@@H]1CCc2cc3c(C(F)(F)F)cc(O)nc3cc2N1__131__CHEMBL1871_Ki: 7.999999999999999 nM','CC[C@H]1C[C@@H](C)Nc2cc3nc(O)cc(C(F)(F)F)c3cc21__132__CHEMBL1871_Ki: 23.0 nM','CC[C@H]1Nc2cc3nc(O)cc(C(F)(F)F)c3cc2CC1(C)C__133__CHEMBL1871_Ki: 49.99999999999999 nM','CCC[C@@H]1CCc2cc3c(C(F)(F)F)cc(O)nc3cc2N1__134__CHEMBL1871_Ki: 23.999999999999996 nM','CC(C)[C@@H]1CCc2cc3c(C(F)(F)F)cc(O)nc3cc2N1__135__CHEMBL1871_Ki: 109.00000000000004 nM','CC[C@H]1C[C@@H](CC)Nc2cc3nc(O)cc(C(F)(F)F)c3cc21__136__CHEMBL1871_Ki: 9.0 nM','CC[C@H]1Nc2cc3nc(O)cc(C(F)(F)F)c3cc2CC1(CC)CC__137__CHEMBL1871_Ki: 42.00000000000001 nM','C[C@@H]1CCc2cc3c(C(F)(F)F)cc(O)nc3cc2N1__138__CHEMBL1871_Ki: 7.0 nM','C[C@H]1Nc2cc3nc(O)cc(C(F)(F)F)c3cc2CC1(C)C__139__CHEMBL1871_Ki: 82.0 nM','CCC[C@H]1Cc2cc3c(C(F)(F)F)cc(O)nc3cc2N[C@@H]1CC__140__CHEMBL1871_Ki: 32.00000000000001 nM','CC(C)(O)C(=O)Nc1ccc([N+](=O)[O-])c(C(F)(F)F)c1O__141__CHEMBL1871_Ki: 27.000000000000004 nM','CCCC[S+](O)c1cc(C(F)(F)F)c2cc3c(cc2n1)NC(C)(C)CC3__142__CHEMBL1871_Ki: 96.0 nM','CC1(C)CCc2cc3c(C(F)(F)F)cc(Cl)nc3cc2N1__143__CHEMBL1871_Ki: 83.99999999999999 nM','CN1c2cc3nc(C#N)cc(C(F)(F)F)c3cc2CCC1(C)C__144__CHEMBL1871_Ki: 85.99999999999999 nM','CC1(C)CCc2cc3c(C(F)(F)F)cc(Br)nc3cc2N1__145__CHEMBL1871_Ki: 158.99999999999994 nM','CC1(C)CCc2cc3c(C(F)(F)F)cc(C#N)nc3cc2N1__146__CHEMBL1871_Ki: 22.0 nM','CC1(C)CCc2cc3c(C(F)(F)F)cc(NS(C)(=O)=O)nc3cc2N1__147__CHEMBL1871_Ki: 572.0000000000002 nM','CC1=CC(C)(C)Nc2cc3nc(Cl)cc(C(F)(F)F)c3cc21__148__CHEMBL1871_Ki: 319.9999999999999 nM','CC1(C)CCc2cc3c(C(F)(F)F)cc(F)nc3cc2N1__149__CHEMBL1871_Ki: 10.999999999999995 nM','CC1(C)CCc2cc3c(C(F)(F)F)ccnc3cc2N1__150__CHEMBL1871_Ki: 5.000000000000001 nM','CN1c2cc3nc(Cl)cc(C(F)(F)F)c3cc2CCC1(C)C__151__CHEMBL1871_Ki: 294.0 nM','CC1=CC(C)(C)Nc2cc3nc(F)cc(C(F)(F)F)c3cc21__152__CHEMBL1871_Ki: 57.00000000000001 nM','C[S+](O)c1cc(C(F)(F)F)c2cc3c(cc2n1)NC(C)(C)CC3__153__CHEMBL1871_Ki: 20.000000000000004 nM','CN1c2cc3nc(F)cc(C(F)(F)F)c3cc2CCC1(C)C__154__CHEMBL1871_Ki: 96.0 nM','CN1c2cc3nc(Br)cc(C(F)(F)F)c3cc2CCC1(C)C__155__CHEMBL1871_Ki: 426.0 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(c1ccccc1)Oc1ccc(Cl)cc1-3__156__CHEMBL1871_Ki: 1400.0000000000007 nM','COc1cccc2c1-c1ccc3c(c1C(c1ccccc1)O2)C(C)=CC(C)(C)N3__157__CHEMBL1871_Ki: 2660.0000000000005 nM','COc1cccc2c1-c1ccc3c(c1C(c1cccc(C(F)(F)F)c1)O2)C(C)=CC(C)(C)N3__158__CHEMBL1871_Ki: 3360.0000000000005 nM','COc1cccc2c1-c1ccc3c(c1C(c1cccc(OCSC)c1)O2)C(C)=CC(C)(C)N3__159__CHEMBL1871_Ki: 3115.0000000000005 nM','COc1cccc2c1-c1ccc3c(c1C(c1cccc(OC(=O)N(C)C)c1)O2)C(C)=CC(C)(C)N3__160__CHEMBL1871_Ki: 3065.9999999999986 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(c1ccccc1)Oc1ccccc1-3__161__CHEMBL1871_Ki: 1855.9999999999993 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(c1cccc(C(F)(F)F)c1)Oc1ccccc1-3__162__CHEMBL1871_Ki: 795.0000000000005 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(c1ccc(C)c(F)c1)Oc1ccccc1-3__163__CHEMBL1871_Ki: 1580.9999999999993 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(c1cccc(Cl)c1)Oc1ccccc1-3__164__CHEMBL1871_Ki: 1525.9999999999993 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(c1ccc(Cl)c(Cl)c1)Oc1ccccc1-3__165__CHEMBL1871_Ki: 5831.0 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(c1ccc(Cl)cc1)Oc1ccccc1-3__166__CHEMBL1871_Ki: 2684.9999999999986 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(c1cc(C)cc(Br)c1)Oc1ccccc1-3__167__CHEMBL1871_Ki: 3499.0 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(c1ccc(Cl)c(F)c1)Oc1ccccc1-3__168__CHEMBL1871_Ki: 1457.0 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(c1ccc(Cl)c(C)c1)Oc1ccccc1-3__169__CHEMBL1871_Ki: 1859.9999999999989 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(c1ccc(C)cc1)Oc1ccccc1-3__170__CHEMBL1871_Ki: 2329.9999999999995 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(c1cccc(Br)c1)Oc1ccccc1-3__171__CHEMBL1871_Ki: 2137.9999999999995 nM','CC1=CC(C)(C)Nc2ccc3c(c21)C(c1cc(Cl)cc(Cl)c1)Oc1ccccc1-3__172__CHEMBL1871_Ki: 2583.999999999999 nM','O=C1[C@H]2C3C=CC(C3)[C@H]2C(=O)N1c1ccc([N+](=O)[O-])c2ccccc12__173__CHEMBL1871_Ki: 1.3333333333333333 nM','CN1C(=O)C2C=CC1[C@@H]1C(=O)N(c3ccc([N+](=O)[O-])c4ccccc34)C(=O)[C@H]21__174__CHEMBL1871_Ki: 115.00000000000004 nM','O=C1[C@H]2C3C=CC(CC3)[C@H]2C(=O)N1c1ccc([N+](=O)[O-])c2ccccc12__175__CHEMBL1871_Ki: 9.75 nM','O=C1[C@H]2C3C=CC(CCC3)[C@H]2C(=O)N1c1ccc([N+](=O)[O-])c2ccccc12__176__CHEMBL1871_Ki: 9.0 nM','O=C1[C@H]2C3C=CC([C@@H]4C[C@H]34)[C@H]2C(=O)N1c1ccc([N+](=O)[O-])c2ccccc12__177__CHEMBL1871_Ki: 3.0 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)CCOC4CC[C@]5(C)[C@H]6C[C@H](O)[C@@]7(C)[C@@H](CC[C@@H]7[C@H](C)CCC(=O)NCC(=O)O)[C@@H]6[C@H](O)C[C@@H]5C4)cc3)C[C@@]21C__178__CHEMBL1871_Ki: 34.0 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)CCOC4CC[C@]5(C)[C@H]6C[C@H](O)[C@@]7(C)[C@@H](CC[C@@H]7[C@H](C)CCC(=O)NCCS(=O)(=O)O)[C@@H]6[C@H](O)C[C@@H]5C4)cc3)C[C@@]21C__179__CHEMBL1871_Ki: 8.9 nM','CC(C)(C)OC(=O)N1C[C@H]2C[C@@H]1[C@H]1C(=O)N(c3ccc([N+](=O)[O-])cc3)C(=O)N12__180__CHEMBL1871_Ki: 230.00000000000009 nM','CC(C)(C)OC(=O)N1C[C@@H]2C[C@H]1[C@]1(C)C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)N21__181__CHEMBL1871_Ki: 1400.0000000000007 nM','N#Cc1ccc(N2C(=O)[C@H]3[C@@H]4C[C@@H](CN4C(=O)Oc4ccc(F)cc4)N3C2=O)cc1C(F)(F)F__182__CHEMBL1871_Ki: 10.0 nM','O=C1[C@H]2[C@@H]3C[C@@H](CN3C(=O)Oc3ccc(F)cc3)N2C(=O)N1c1ccc([N+](=O)[O-])c2ccccc12__183__CHEMBL1871_Ki: 10.0 nM','N#Cc1ccc(N2C(=O)[C@H]3[C@@H]4C[C@@H](CN4C(=O)Oc4ccc(F)cc4)N3C2=O)c2ccccc12__184__CHEMBL1871_Ki: 40.000000000000014 nM','N#Cc1ccc(N2C(=O)[C@H]3[C@@H]4C[C@@H](CN4C(=O)c4ccccc4)N3C2=O)cc1C(F)(F)F__185__CHEMBL1871_Ki: 119.99999999999996 nM','O=C1[C@H]2[C@@H]3C[C@@H](CN3C(=O)c3ccccc3)N2C(=O)N1c1ccc([N+](=O)[O-])cc1__186__CHEMBL1871_Ki: 10.0 nM','CCCCc1ccc(C(=O)N2C[C@@H]3C[C@H]2[C@@H]2C(=O)N(c4ccc(C#N)c(C(F)(F)F)c4)C(=O)N32)cc1__187__CHEMBL1871_Ki: 689.9999999999999 nM','CCCCc1ccc(C(=O)N2C[C@@H]3C[C@H]2[C@@H]2C(=O)N(c4ccc([N+](=O)[O-])cc4)C(=O)N32)cc1__188__CHEMBL1871_Ki: 70.00000000000001 nM','CCCCc1ccc(C(=O)N2C[C@@H]3C[C@H]2[C@@H]2C(=O)N(c4ccc(C#N)cc4)C(=O)N32)cc1__189__CHEMBL1871_Ki: 100.0 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)C(C)=O)cc3)C[C@@]21C__190__CHEMBL1871_Ki: 8.9 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)C(=O)CC[C@H](NC(=O)CC[C@@H](C)[C@H]4CC[C@H]5[C@H]6[C@H](C[C@H](O)[C@@]54C)[C@@]4(C)CC[C@@H](O)C[C@H]4C[C@H]6O)C(=O)O)cc3)C[C@@]21C__191__CHEMBL1871_Ki: 34.0 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)C(=O)CNC(=O)OC4CC[C@]5(C)[C@H]6C[C@H](O)[C@@]7(C)[C@@H](CC[C@@H]7[C@H](C)CCC(=O)O)[C@@H]6[C@H](O)C[C@@H]5C4)cc3)C[C@@]21C__192__CHEMBL1871_Ki: 21.0 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)CCNC(=O)OC4CC[C@]5(C)[C@H]6C[C@H](O)[C@@]7(C)[C@@H](CC[C@@H]7[C@H](C)CCC(=O)O)[C@@H]6[C@H](O)C[C@@H]5C4)cc3)C[C@@]21C__193__CHEMBL1871_Ki: 6.2 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)CCOC4CC[C@]5(C)[C@H]6C[C@H](O)[C@@]7(C)[C@@H](CC[C@@H]7[C@H](C)CCC(=O)O)[C@@H]6[C@H](O)C[C@@H]5C4)cc3)C[C@@]21C__194__CHEMBL1871_Ki: 8.5 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)CCCC(=O)N(C)C4CC[C@@]5(C)[C@@H](C4)C[C@@H](O)[C@@H]4[C@@H]5C[C@H](O)[C@@]5(C)[C@H]4CC[C@@H]5[C@H](C)CCC(=O)O)cc3)C[C@@]21C__195__CHEMBL1871_Ki: 7.4 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)CCNC(=O)N(C)C4CC[C@@]5(C)[C@@H](C4)C[C@@H](O)[C@@H]4[C@@H]5C[C@H](O)[C@@]5(C)[C@H]4CC[C@@H]5[C@H](C)CCC(=O)O)cc3)C[C@@]21C__196__CHEMBL1871_Ki: 16.0 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)CCCS(=O)(=O)N(C)C4CC[C@@]5(C)[C@@H](C4)C[C@@H](O)[C@@H]4[C@@H]5C[C@H](O)[C@@]5(C)[C@H]4CC[C@@H]5[C@H](C)CCC(=O)O)cc3)C[C@@]21C__197__CHEMBL1871_Ki: 17.0 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)CCCOC4CC[C@]5(C)[C@H]6C[C@H](O)[C@@]7(C)[C@@H](CC[C@@H]7[C@H](C)CCC(=O)O)[C@@H]6[C@H](O)C[C@@H]5C4)cc3)C[C@@]21C__198__CHEMBL1871_Ki: 4.6000000000000005 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)CCC[C@H]4[C@H](O)CC[C@]5(C)[C@H]6C[C@H](O)[C@@]7(C)[C@@H](CC[C@@H]7[C@H](C)CCC(=O)O)[C@@H]6[C@H](O)C[C@H]45)cc3)C[C@@]21C__199__CHEMBL1871_Ki: 53.00000000000002 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)C(=O)CNC(=O)O[C@@H]4C[C@@H]5CC(O)CC[C@]5(C)[C@H]5C[C@H](O)[C@@]6(C)[C@@H](CC[C@@H]6[C@H](C)CCC(=O)O)[C@@H]54)cc3)C[C@@]21C__200__CHEMBL1871_Ki: 37.0 nM','C#C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3[C@@H](c3ccc(N(C)CCNC(=O)O[C@@H]4C[C@@H]5CC(O)CC[C@]5(C)[C@H]5C[C@H](O)[C@@]6(C)[C@@H](CC[C@@H]6[C@H](C)CCC(=O)O)[C@@H]54)cc3)C[C@@]21C__201__CHEMBL1871_Ki: 17.999999999999996 nM','CCC(CC)(c1ccc(NCCC(C)(C)O)c(C)c1)c1ccc(NCCC(C)(C)O)c(C)c1__202__CHEMBL1871_Ki: 3379.9999999999995 nM','CCC(CC)(c1ccc(NCCC(C)(C)O)c(C)c1)c1ccc(OCC(=O)C(C)(C)C)c(C)c1__203__CHEMBL1871_Ki: 2900.0 nM','CCC(CC)(c1ccc(NCC(O)CO)c(C)c1)c1ccc(OCC(O)C(C)(C)C)c(C)c1__204__CHEMBL1871_Ki: 1507.9999999999993 nM','CCC(CC)(c1ccc(NCC(O)CO)c(C)c1)c1ccc(OCC(=O)C(C)(C)C)c(C)c1__205__CHEMBL1871_Ki: 1170.0000000000002 nM','C[C@H]1CN(C(=O)Nc2ccc(C(F)(F)F)nc2)[C@H](C)CN1c1ccc(C#N)c(C(F)(F)F)c1__206__CHEMBL1871_Ki: 4.6000000000000005 nM','O=c1cc(C(F)(F)F)c2cc(N(CC(F)(F)F)CC(F)(F)F)ccc2[nH]1__207__CHEMBL1871_Ki: 1.5 nM','Oc1cc(C(F)(F)F)c2cc(N(CC3CC3)CC(F)(F)F)ccc2n1__208__CHEMBL1871_Ki: 7.1 nM','CCN(CC(F)(F)F)c1ccc2nc(O)cc(C(F)(F)F)c2c1__209__CHEMBL1871_Ki: 7.1 nM','Oc1cc(C(F)(F)F)c2cc(N(CC3CC3)CC3CC3)ccc2n1__210__CHEMBL1871_Ki: 6.3 nM','CCN(c1ccc2nc(O)cc(C(F)(F)F)c2c1)C(C)C__211__CHEMBL1871_Ki: 7.4 nM','CCCCN(CCCC)c1ccc2nc(O)cc(C(F)(F)F)c2c1__212__CHEMBL1871_Ki: 222.00000000000009 nM','CCCN(CCC)c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__213__CHEMBL1871_Ki: 63.99999999999999 nM','CCN(CC)c1ccc2nc(O)cc(C(F)(F)F)c2c1__214__CHEMBL1871_Ki: 4.4 nM','CN(C)c1ccc2nc(O)cc(C(F)(F)F)c2c1__215__CHEMBL1871_Ki: 153.00000000000003 nM','CC(C)Nc1ccc2nc(O)cc(C(F)(F)F)c2c1__216__CHEMBL1871_Ki: 58.00000000000001 nM','CCCNc1ccc2nc(O)cc(C(F)(F)F)c2c1__217__CHEMBL1871_Ki: 54.00000000000002 nM','O=C1C2CCCN2C(=O)N1c1ccc([N+](=O)[O-])c2ccccc12__218__CHEMBL1871_Ki: 1.7 nM','N#Cc1ccc(N2C(=O)[C@H]3[C@@H]4CC[C@@H](C4)N3C2=O)c2ccccc12__219__CHEMBL1871_Ki: 23.999999999999996 nM','O=c1cc(C(F)(F)F)c2cc3c(cc2[nH]1)OCC1CCCCN31__220__CHEMBL1871_Ki: 16.0 nM','O=c1cc(C(F)(F)F)c2cc3c(cc2[nH]1)OC[C@H]1CCCN31__221__CHEMBL1871_Ki: 27.000000000000004 nM','CC(C)C[C@@H]1COc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc2N1CC(F)(F)F__222__CHEMBL1871_Ki: 109.00000000000004 nM','CC(C)[C@@H]1COc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc2N1CC(F)(F)F__223__CHEMBL1871_Ki: 50.99999999999999 nM','CCC1COc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc2N1CC1CC1__224__CHEMBL1871_Ki: 23.0 nM','CC1COc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc2N1CC1CC1__225__CHEMBL1871_Ki: 4.0 nM','CCC1COc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc2N1CC__226__CHEMBL1871_Ki: 5.6000000000000005 nM','CCN1c2cc3c(C(F)(F)F)cc(=O)[nH]c3cc2OCC1C__227__CHEMBL1871_Ki: 4.2 nM','CC1COc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc2N1__228__CHEMBL1871_Ki: 113.00000000000006 nM','CCC1CN(CC(F)(F)F)c2cc3c(C(F)(F)F)cc(=O)[nH]c3cc2O1__229__CHEMBL1871_Ki: 30.0 nM','CCC1CN(CC)c2cc3c(C(F)(F)F)cc(=O)[nH]c3cc2O1__230__CHEMBL1871_Ki: 34.0 nM','CCC1CN(C)c2cc3c(C(F)(F)F)cc(=O)[nH]c3cc2O1__231__CHEMBL1871_Ki: 58.00000000000001 nM','CC1CN(C)c2cc3c(C(F)(F)F)cc(=O)[nH]c3cc2O1__232__CHEMBL1871_Ki: 33.0 nM','O=c1cc(C(F)(F)F)c2cc3c(cc2[nH]1)OCCN3Cc1ccccc1__233__CHEMBL1871_Ki: 205.99999999999997 nM','O=c1cc(C(F)(F)F)c2cc3c(cc2[nH]1)OCCN3CC1CC1__234__CHEMBL1871_Ki: 1.6 nM','O=c1cc(C(F)(F)F)c2cc3c(cc2[nH]1)OCCN3CC(F)(F)F__235__CHEMBL1871_Ki: 4.0 nM','CC(C)(C)N1CCOc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc21__236__CHEMBL1871_Ki: 47.99999999999999 nM','CC(C)CN1CCOc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc21__237__CHEMBL1871_Ki: 17.0 nM','CCCN1CCOc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc21__238__CHEMBL1871_Ki: 9.6 nM','CCN1CCOc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc21__239__CHEMBL1871_Ki: 1.2 nM','CN1CCOc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc21__240__CHEMBL1871_Ki: 15.000000000000005 nM','CCC1CCc2cc3c(C(F)(F)F)cc(=O)[nH]c3cc2N1__241__CHEMBL1871_Ki: 10.999999999999995 nM','CC(C)(C)CNc1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__242__CHEMBL1871_Ki: 56.00000000000001 nM','CC(C)CNc1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__243__CHEMBL1871_Ki: 59.00000000000001 nM','O=c1cc(C(F)(F)F)c2cc(NC3CCCC3)ccc2[nH]1__244__CHEMBL1871_Ki: 74.00000000000001 nM','O=c1cc(C(F)(F)F)c2cc(NCC(F)(F)C(F)(F)F)ccc2[nH]1__245__CHEMBL1871_Ki: 77.99999999999999 nM','O=c1cc(C(F)(F)F)c2cc(NCC(F)(F)F)ccc2[nH]1__246__CHEMBL1871_Ki: 16.0 nM','CCc1cc2c(C(F)(F)F)cc(=O)[nH]c2cc1NCC(F)(F)F__247__CHEMBL1871_Ki: 156.99999999999994 nM','CCc1cc2c(C(F)(F)F)cc(=O)[nH]c2cc1NC__248__CHEMBL1871_Ki: 868.9999999999997 nM','Cc1cc2c(C(F)(F)F)cc(=O)[nH]c2cc1NCC(C)C__249__CHEMBL1871_Ki: 650.0000000000002 nM','CCCNc1cc2[nH]c(=O)cc(C(F)(F)F)c2cc1C__250__CHEMBL1871_Ki: 640.9999999999998 nM','CCC(C)c1cc2c(C(F)(F)F)cc(=O)[nH]c2cc1N__251__CHEMBL1871_Ki: 12.999999999999998 nM','CCCc1cc2c(C(F)(F)F)cc(=O)[nH]c2cc1N__252__CHEMBL1871_Ki: 9.0 nM','CCc1cc2c(C(F)(F)F)cc(=O)[nH]c2cc1N__253__CHEMBL1871_Ki: 20.000000000000004 nM','Cc1cc2c(C(F)(F)F)cc(=O)[nH]c2cc1N__254__CHEMBL1871_Ki: 30.0 nM','CCCN(CC(F)(F)F)c1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__255__CHEMBL1871_Ki: 241.0 nM','CCN(CC(F)(F)F)c1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__256__CHEMBL1871_Ki: 30.0 nM','CCN(CC)c1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__257__CHEMBL1871_Ki: 463.00000000000017 nM','CN(C)c1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__258__CHEMBL1871_Ki: 760.9999999999999 nM','O=c1cc(C(F)(F)F)c2ccc(NCc3ccccc3)cc2[nH]1__259__CHEMBL1871_Ki: 162.99999999999994 nM','O=c1cc(C(F)(F)F)c2ccc(NCC(F)(F)C(F)(F)F)cc2[nH]1__260__CHEMBL1871_Ki: 36.0 nM','O=c1cc(C(F)(F)F)c2ccc(NCC(F)(F)F)cc2[nH]1__261__CHEMBL1871_Ki: 15.000000000000005 nM','O=c1cc(C(F)(F)F)c2ccc(NC3CCCCC3)cc2[nH]1__262__CHEMBL1871_Ki: 1000.0 nM','O=c1cc(C(F)(F)F)c2ccc(NC3CCCC3)cc2[nH]1__263__CHEMBL1871_Ki: 1000.0 nM','O=c1cc(C(F)(F)F)c2ccc(NC3CCC3)cc2[nH]1__264__CHEMBL1871_Ki: 160.99999999999994 nM','C=CC(C)(C)Nc1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__265__CHEMBL1871_Ki: 118.00000000000004 nM','CCC(C)(C)Nc1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__266__CHEMBL1871_Ki: 109.99999999999996 nM','CC(C)(C)CNc1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__267__CHEMBL1871_Ki: 134.00000000000003 nM','CC(C)CNc1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__268__CHEMBL1871_Ki: 64.99999999999999 nM','CC(C)Nc1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__269__CHEMBL1871_Ki: 78.99999999999999 nM','CCCCNc1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__270__CHEMBL1871_Ki: 49.99999999999999 nM','CCNc1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__271__CHEMBL1871_Ki: 29.0 nM','CNc1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__272__CHEMBL1871_Ki: 83.00000000000001 nM','Nc1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__273__CHEMBL1871_Ki: 406.99999999999983 nM','CCCNc1ccc2c(C(F)(F)F)cc(=O)[nH]c2c1__274__CHEMBL1871_Ki: 37.0 nM','N#Cc1ccc(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)c2ncccc12__275__CHEMBL1871_Ki: 21.0 nM','N#Cc1ccc(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)cc1__276__CHEMBL1871_Ki: 34.0 nM','COc1cc(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)ccc1C#N__277__CHEMBL1871_Ki: 23.999999999999996 nM','N#Cc1ccc(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)cc1C(F)(F)F__278__CHEMBL1871_Ki: 7.799999999999999 nM','N#Cc1ccc(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)cc1Cl__279__CHEMBL1871_Ki: 1.5 nM','N#Cc1ccc(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)cc1-c1ccccc1__280__CHEMBL1871_Ki: 47.99999999999999 nM','Cc1cc(C#N)ccc1N1C(=O)[C@@H]2[C@H](O)CCN2C1=O__281__CHEMBL1871_Ki: 8.5 nM','Cc1c(C#N)ccc(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)c1C__282__CHEMBL1871_Ki: 4.500000000000001 nM','Cc1c(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)ccc(C#N)c1C(F)(F)F__283__CHEMBL1871_Ki: 2.9 nM','COc1c(C#N)ccc(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)c1C__284__CHEMBL1871_Ki: 3.7 nM','Cc1c(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)ccc(C#N)c1F__285__CHEMBL1871_Ki: 1.3 nM','Cc1c(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)ccc(C#N)c1Cl__286__CHEMBL1871_Ki: 1.9275 nM','Cc1c(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)ccc(C#N)c1Br__287__CHEMBL1871_Ki: 1.2 nM','Cc1c(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)ccc(C#N)c1C#N__288__CHEMBL1871_Ki: 7.999999999999999 nM','N#Cc1ccc(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)c(F)c1F__289__CHEMBL1871_Ki: 4.3 nM','N#Cc1ccc(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)c(F)c1Cl__290__CHEMBL1871_Ki: 3.0 nM','COc1c(C#N)ccc(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)c1Cl__291__CHEMBL1871_Ki: 6.1 nM','Cc1c(C#N)ccc(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)c1Cl__292__CHEMBL1871_Ki: 1.4285714285714286 nM','COc1c(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)ccc(C#N)c1C__293__CHEMBL1871_Ki: 8.1 nM','COc1c(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)ccc(C#N)c1C(F)(F)F__294__CHEMBL1871_Ki: 7.899999999999999 nM','CCc1cc(C#N)ccc1N1C(=O)[C@@H]2[C@H](O)CCN2C1=O__295__CHEMBL1871_Ki: 13.999999999999998 nM','CCc1c(N2C(=O)[C@@H]3[C@H](O)CCN3C2=O)ccc(C#N)c1C(F)(F)F__296__CHEMBL1871_Ki: 3.2999999999999994 nM','CC1=C(c2ccc(C#N)c(Cl)c2C)C(=O)N2CC[C@H](O)[C@@H]12__297__CHEMBL1871_Ki: 2.0 nM','Cc1c(N2C(=O)N3CC[C@@H](O)[C@H]3[C@H]2C(C)C)ccc(C#N)c1Cl__298__CHEMBL1871_Ki: 23.0 nM','Cc1c(N2C[C@H]3[C@H](CC[C@H]3O)C2=O)ccc(C#N)c1Cl__299__CHEMBL1871_Ki: 2.2 nM','Cc1c(N2C[C@@H]3[C@H](O)CCN3C2=O)ccc(C#N)c1Cl__300__CHEMBL1871_Ki: 4.0 nM','COc1c(O)ccc2c1-c1ccc3c(c1/C(=C/c1sccc1CO)O2)C(C)=CC(C)(C)N3__301__CHEMBL1871_Ki: 290.0 nM','CC/C=C(\C)c1ccsc1/C=C1\Oc2ccc(O)c(OC)c2-c2ccc3c(c21)C(C)=CC(C)(C)N3__302__CHEMBL1871_Ki: 346.00000000000017 nM','CO/N=C(\C)c1ccsc1/C=C1\Oc2ccc(O)c(OC)c2-c2ccc3c(c21)C(C)=CC(C)(C)N3__303__CHEMBL1871_Ki: 109.99999999999996 nM','COc1c(O)ccc2c1-c1ccc3c(c1/C(=C/c1sccc1C(C)O)O2)C(C)=CC(C)(C)N3__304__CHEMBL1871_Ki: 1530.0000000000002 nM','COc1c(O)ccc2c1-c1ccc3c(c1/C(=C/c1sccc1/C(C)=N/O)O2)C(C)=CC(C)(C)N3__305__CHEMBL1871_Ki: 290.0 nM','COc1c(O)ccc2c1-c1ccc3c(c1/C(=C/c1sccc1C(O)C(F)(F)F)O2)C(C)=CC(C)(C)N3__306__CHEMBL1871_Ki: 1899.9999999999993 nM','COCc1ccsc1/C=C1\Oc2ccc(O)c(OC)c2-c2ccc3c(c21)C(C)=CC(C)(C)N3__307__CHEMBL1871_Ki: 150.00000000000003 nM','O=c1cc(C(F)(F)F)c2cc(N3CCCC3)ccc2[nH]1__308__CHEMBL1871_Ki: 1700.0000000000007 nM','C[C@@H]1CC[C@H](CCl)N1c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__309__CHEMBL1871_Ki: 10.0 nM','C[C@@H]1CC[C@H](CO)N1c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__310__CHEMBL1871_Ki: 70.00000000000001 nM','CC1CCCN1c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__311__CHEMBL1871_Ki: 72.00000000000001 nM','Cc1cc(=O)[nH]c2ccc(N(CC(C)C)CC(F)(F)F)cc12__312__CHEMBL1871_Ki: 12.000000000000002 nM','O=c1cc(O)c2cc(N(CC(F)(F)F)CC(F)(F)F)ccc2[nH]1__313__CHEMBL1871_Ki: 1000.0 nM','COc1cc(=O)[nH]c2ccc(N(CC(F)(F)F)CC(F)(F)F)cc12__314__CHEMBL1871_Ki: 23.0 nM','O=c1cc(Br)c2cc(N(CC(F)(F)F)CC(F)(F)F)ccc2[nH]1__315__CHEMBL1871_Ki: 2.0 nM','O=c1cc(Cl)c2cc(N(CC(F)(F)F)CC(F)(F)F)ccc2[nH]1__316__CHEMBL1871_Ki: 2.0 nM','O=c1cc(C(F)F)c2cc(N(CC(F)(F)F)CC(F)(F)F)ccc2[nH]1__317__CHEMBL1871_Ki: 2.5 nM','CC(C)c1cc(=O)[nH]c2ccc(N(CC(F)(F)F)CC(F)(F)F)cc12__318__CHEMBL1871_Ki: 21.0 nM','CCCc1cc(=O)[nH]c2ccc(N(CC(F)(F)F)CC(F)(F)F)cc12__319__CHEMBL1871_Ki: 42.00000000000001 nM','CCc1cc(=O)[nH]c2ccc(N(CC(F)(F)F)CC(F)(F)F)cc12__320__CHEMBL1871_Ki: 5.4 nM','Cc1cc(=O)[nH]c2ccc(N(CC(F)(F)F)CC(F)(F)F)cc12__321__CHEMBL1871_Ki: 1.4 nM','O=c1ccc2cc(N(CC(F)(F)F)CC(F)(F)F)ccc2[nH]1__322__CHEMBL1871_Ki: 23.999999999999996 nM','CC(=O)C(C)N(CC(F)(F)F)c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__323__CHEMBL1871_Ki: 3.1 nM','O=c1cc(C(F)(F)F)c2cc(N(Cc3ccoc3)CC(F)(F)F)ccc2[nH]1__324__CHEMBL1871_Ki: 13.999999999999998 nM','O=C(N(CC(F)(F)F)c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1)C(F)(F)F__325__CHEMBL1871_Ki: 1000.0 nM','CCOC(=O)CN(CC(F)(F)F)c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__326__CHEMBL1871_Ki: 19.0 nM','O=c1cc(C(F)(F)F)c2cc(N(Cc3cccs3)CC(F)(F)F)ccc2[nH]1__327__CHEMBL1871_Ki: 61.00000000000002 nM','O=c1cc(C(F)(F)F)c2cc(N(Cc3ccccc3)CC(F)(F)F)ccc2[nH]1__328__CHEMBL1871_Ki: 78.99999999999999 nM','O=c1cc(C(F)(F)F)c2cc(N(CCO)CC(F)(F)F)ccc2[nH]1__329__CHEMBL1871_Ki: 6.6 nM','O=c1cc(C(F)(F)F)c2cc(N(CC(F)(F)F)CC(F)(F)C(F)(F)F)ccc2[nH]1__330__CHEMBL1871_Ki: 31.0 nM','O=c1cc(C(F)(F)F)c2cc(N(CCC(F)(F)F)CC(F)(F)F)ccc2[nH]1__331__CHEMBL1871_Ki: 116.00000000000004 nM','O=c1cc(C(F)(F)F)c2cc(N(CC(Cl)Cl)CC(F)(F)F)ccc2[nH]1__332__CHEMBL1871_Ki: 6.0 nM','O=c1cc(C(F)(F)F)c2cc(N(CCCl)CC(F)(F)F)ccc2[nH]1__333__CHEMBL1871_Ki: 2.6 nM','O=c1cc(C(F)(F)F)c2cc(N(CC(F)F)CC(F)(F)F)ccc2[nH]1__334__CHEMBL1871_Ki: 1.7 nM','CCC(C)N(CC(F)(F)F)c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__335__CHEMBL1871_Ki: 29.0 nM','CC(C)(C)CCN(CC(F)(F)F)c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__336__CHEMBL1871_Ki: 243.0 nM','CC(C)(C)CN(CC(F)(F)F)c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__337__CHEMBL1871_Ki: 12.000000000000002 nM','CC(C)N(CC(F)(F)F)c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__338__CHEMBL1871_Ki: 2.9 nM','CCCCN(CC(F)(F)F)c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__339__CHEMBL1871_Ki: 33.0 nM','CCCN(CC(F)(F)F)c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__340__CHEMBL1871_Ki: 12.000000000000002 nM','CN(CC(F)(F)F)c1ccc2[nH]c(=O)cc(C(F)(F)F)c2c1__341__CHEMBL1871_Ki: 9.0 nM','O=c1cc(C(F)(F)F)c2cc(N(CC(F)F)CC(F)(F)Cl)ccc2[nH]1__342__CHEMBL1871_Ki: 2.3 nM','O=c1cc(C(F)(F)F)c2cc(N(CC(F)F)CC(F)F)ccc2[nH]1__343__CHEMBL1871_Ki: 2.0 nM','COc1c(O)ccc2c1-c1ccc3c(c1/C(=C/c1cccc(O)c1)O2)C(C)=CC(C)(C)N3__344__CHEMBL1871_Ki: 909.9999999999997 nM','COc1c(O)ccc2c1-c1ccc3c(c1/C(=C/c1cccc(C)c1)O2)C(C)=CC(C)(C)N3__345__CHEMBL1871_Ki: 570.0000000000001 nM','COCOCc1cc(F)ccc1/C=C1\Oc2ccc(O)c(OC)c2-c2ccc3c(c21)C(C)=CC(C)(C)N3__346__CHEMBL1871_Ki: 630.0 nM','COc1c(O)ccc2c1-c1ccc3c(c1/C(=C/c1ccc(F)cc1CO)O2)C(C)=CC(C)(C)N3__347__CHEMBL1871_Ki: 700.0000000000001 nM','CCC(=O)O[C@H]1CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@]4(C)[C@H]3CC[C@]12C__348__CHEMBL1871_Ki: 4.0 nM','COC(=O)[C@@H]1[C@H](O)CCN1S(=O)(=O)c1ccc(C#N)c(Cl)c1C__349__CHEMBL1871_Ki: 36.0 nM','Cc1c(N2C(C)[C@@H]3[C@@H](O)CCN3S2(=O)=O)ccc(C#N)c1Cl__350__CHEMBL1871_Ki: 20.000000000000004 nM','Cc1c(N2C(=O)[C@@H]3C[C@H](O)CN3S2(=O)=O)ccc(C#N)c1Cl__351__CHEMBL1871_Ki: 44.0 nM','Cc1c(N2C(=O)[C@]3(C)[C@H](O)CCN3S2(=O)=O)ccc(C#N)c1Cl__352__CHEMBL1871_Ki: 8.200000000000001 nM','CC(=O)S[C@@H]1CC2=CC(=O)CC[C@]2(C)[C@H]2CC[C@@]3(C)[C@@H](CC[C@@]34CCC(=O)O4)[C@@H]21__353__CHEMBL1871_Ki: 39.40000000000001 nM','COC(=O)[C@@H]1CC2=CC(=O)CC[C@]2(C)C2C1C1CC[C@@]3(CCC(=O)O3)[C@@]1(C)[C@H]1O[C@@H]21__354__CHEMBL1871_Ki: 8892.000000000002 nM','CC12CCC(C)(O1)[C@@H]1C(=O)N(c3ccc([N+](=O)[O-])c4c(Br)cccc34)C(=O)[C@@H]12__355__CHEMBL1871_Ki: 17.0 nM','CC12CCC(C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)n4nccc34)C(=O)[C@@H]12__356__CHEMBL1871_Ki: 17.999999999999996 nM','CC12CCC(C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c4nsnc34)C(=O)[C@@H]12__357__CHEMBL1871_Ki: 3.0 nM','CC12CCC(C)(O1)[C@@H]1C(=O)N(c3c(N)ccc4nccn34)C(=O)[C@@H]12__358__CHEMBL1871_Ki: 27.000000000000004 nM','CC12CCC(C)(O1)[C@@H]1C(=O)N(c3c(N)ccc4ncsc34)C(=O)[C@@H]12__359__CHEMBL1871_Ki: 17.0 nM','COc1cc(N2C(=O)[C@H]3[C@@H](C2=O)C2(C)CCC3(C)O2)ccc1-c1cnco1__360__CHEMBL1871_Ki: 12.000000000000002 nM','CC12CCC(C)(O1)[C@@H]1C(=O)N(c3cnc(C#N)c(Cl)c3)C(=O)[C@@H]12__361__CHEMBL1871_Ki: 4.0 nM','CC12CCC(C)(O1)[C@@H]1C(=O)N(c3ccc([N+](=O)[O-])c(C(F)(F)F)c3)C(=O)[C@@H]12__362__CHEMBL1871_Ki: 17.0 nM','CC12CCC(C)(O1)[C@@H]1C(=O)N(c3cc(Cl)cc(Cl)c3)C(=O)[C@@H]12__363__CHEMBL1871_Ki: 3.0 nM','CSc1cc(N2C(=O)[C@H]3[C@@H](C2=O)C2(C)CCC3(C)O2)ccc1C#N__364__CHEMBL1871_Ki: 3.0 nM','CC12CCC(C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(I)c3)C(=O)[C@@H]12__365__CHEMBL1871_Ki: 1.0 nM','CC12CCC(C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__366__CHEMBL1871_Ki: 17.0 nM','CC12CCC(C)(O1)[C@@H]1C(=O)N(c3cccc(C(F)(F)F)c3)C(=O)[C@@H]12__367__CHEMBL1871_Ki: 40.99999999999999 nM','CC12CCC(O1)[C@H]1C(=O)N(c3cccc(C(F)(F)F)c3)C(=O)[C@H]12__368__CHEMBL1871_Ki: 410.0 nM','O=C1[C@@H]2C3CCC(O3)[C@@H]2C(=O)N1c1cccc(C(F)(F)F)c1__369__CHEMBL1871_Ki: 4100.0 nM','N#Cc1ccc(N2C(=O)[C@@H]3C4CCC(O4)[C@@H]3C2=O)cc1C(F)(F)F__370__CHEMBL1871_Ki: 1170.0000000000002 nM','O=C1[C@@H]2C3CCC(O3)[C@@H]2C(=O)N1c1ccc(Cl)c(C(F)(F)F)c1__371__CHEMBL1871_Ki: 1110.0000000000002 nM','O=C1[C@@H]2C3CCC(O3)[C@@H]2C(=O)N1c1ccc(Cl)c([N+](=O)[O-])c1__372__CHEMBL1871_Ki: 692.0000000000003 nM','Cc1cc(N2C(=O)[C@@H]3C4CCC(O4)[C@@H]3C2=O)ccc1Cl__373__CHEMBL1871_Ki: 77.0 nM','Cc1ccc(N2C(=O)[C@@H]3C4CCC(O4)[C@@H]3C2=O)cc1Cl__374__CHEMBL1871_Ki: 486.0 nM','O=C1[C@@H]2C3CCC(O3)[C@@H]2C(=O)N1c1ccc(Cl)c(Cl)c1__375__CHEMBL1871_Ki: 377.00000000000017 nM','O=C1[C@@H]2C3CCC(O3)[C@@H]2C(=O)N1c1ccc(I)c(Cl)c1__376__CHEMBL1871_Ki: 220.99999999999997 nM','O=C1[C@@H]2C3CCC(O3)[C@@H]2C(=O)N1c1ccc(Br)c2ccccc12__377__CHEMBL1871_Ki: 53.00000000000002 nM','O=C1[C@@H]2C3CCC(O3)[C@@H]2C(=O)N1c1ccc([N+](=O)[O-])c2ccccc12__378__CHEMBL1871_Ki: 3.0 nM','O=C1[C@H]2C3CCC(C3)N2C(=O)N1c1cccc(C(F)(F)F)c1__379__CHEMBL1871_Ki: 21.0 nM','COc1c(O)ccc2c1-c1ccc3c(c1/C(=C/c1cccc(C)c1F)O2)C(C)=CC(C)(C)N3__380__CHEMBL1871_Ki: 909.9999999999997 nM','CSCC[C@@H]1COc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc2N1CC(F)(F)F__381__CHEMBL1871_Ki: 2.4 nM','O=c1cc(C(F)(F)F)c2cc3c(cc2[nH]1)OC[C@@H](CC(F)(F)F)N3CC(F)(F)F__382__CHEMBL1871_Ki: 17.999999999999996 nM','O=c1cc(C(F)(F)F)c2cc3c(cc2[nH]1)OCC(C(F)F)N3CC(F)(F)F__383__CHEMBL1871_Ki: 6.6 nM','N#CCC1COc2cc3[nH]c(=O)cc(C(F)(F)F)c3cc2N1CC(F)(F)F__384__CHEMBL1871_Ki: 17.999999999999996 nM','Cc1cc(=O)[nH]c2ccc3c4cc(F)ccc4oc(=O)c3c12__385__CHEMBL1871_Ki: 1000.0 nM','COc1cccc2c1-c1ccc3[nH]c(=O)cc(C(F)(F)F)c3c1OC2__386__CHEMBL1871_Ki: 27.000000000000004 nM','O=c1cc(C(F)(F)F)c2c3c(ccc2[nH]1)-c1ccccc1CO3__387__CHEMBL1871_Ki: 7.999999999999999 nM','O=c1cc(C(F)(F)F)c2c(ccc3c2oc(=O)c2cccc(O)c23)[nH]1__388__CHEMBL1871_Ki: 3.0 nM','COc1cccc2c(=O)oc3c(ccc4[nH]c(=O)cc(C(F)(F)F)c43)c12__389__CHEMBL1871_Ki: 49.99999999999999 nM','O=c1cc(C(F)(F)F)c2c3c(ccc2[nH]1)-c1c(O)cccc1OC3__390__CHEMBL1871_Ki: 1.3 nM','COc1cccc2c1-c1ccc3[nH]c(=O)cc(C(F)(F)F)c3c1CO2__391__CHEMBL1871_Ki: 10.999999999999995 nM','C=CCC1Oc2cccc(OC)c2-c2ccc3[nH]c(=O)cc(C)c3c21__392__CHEMBL1871_Ki: 1593.0000000000002 nM','COc1cccc2c1-c1ccc3[nH]c(=O)cc(C)c3c1C(C)O2__393__CHEMBL1871_Ki: 249.99999999999997 nM','COc1cccc2c1-c1ccc3[nH]c(=O)cc(C)c3c1C(OC)O2__394__CHEMBL1871_Ki: 2346.000000000001 nM','COc1cccc2c1-c1ccc3[nH]c(=O)cc(C)c3c1C(O)O2__395__CHEMBL1871_Ki: 1300.0000000000005 nM','COc1c(O)ccc2c1-c1ccc3[nH]c(=O)cc(C)c3c1CO2__396__CHEMBL1871_Ki: 5.000000000000001 nM','Cc1cc(=O)[nH]c2ccc3c(c12)COc1cccc(CO)c1-3__397__CHEMBL1871_Ki: 26.0 nM','COc1cccc2c1-c1ccc3[nH]c(=O)cc(C)c3c1CO2__398__CHEMBL1871_Ki: 59.00000000000001 nM','COc1c(OC(C)C)ccc2oc(=O)c3c(ccc4[nH]c(=O)cc(C)c43)c12__399__CHEMBL1871_Ki: 21.0 nM','CCOc1ccc2oc(=O)c3c(ccc4[nH]c(=O)cc(C)c43)c2c1OC__400__CHEMBL1871_Ki: 62.0 nM','COc1c(C(=O)OC(F)(F)F)ccc2oc(=O)c3c(ccc4[nH]c(=O)cc(C)c43)c12__401__CHEMBL1871_Ki: 10.0 nM','COc1c(O)ccc2oc(=O)c3c(ccc4[nH]c(=O)cc(C)c43)c12__402__CHEMBL1871_Ki: 4.0 nM','Cc1cc(=O)[nH]c2ccc3c4c(C(=O)OC(C)(C)C)cccc4oc(=O)c3c12__403__CHEMBL1871_Ki: 8.7 nM','COc1cccc2oc(=O)c3c(ccc4[nH]c(=O)cc(C)c43)c12__404__CHEMBL1871_Ki: 28.0 nM','COc1ccc2oc(=O)c3c(ccc4[nH]c(=O)cc(C)c43)c2c1__405__CHEMBL1871_Ki: 610.0000000000001 nM','Cc1cc(-c2cccc3cc[nH]c23)c(Cl)c2c1NC(C)(C)CC2C__406__CHEMBL1871_Ki: 57.00000000000001 nM','COc1ccc2cc[nH]c2c1-c1cc(C)c2c(c1Cl)C(C)CC(C)(C)N2__407__CHEMBL1871_Ki: 1500.0000000000007 nM','Cc1cc(-c2cc(F)c(F)c3cc[nH]c23)c(Cl)c2c1NC(C)(C)CC2C__408__CHEMBL1871_Ki: 49.99999999999999 nM','Cc1cc(-c2ccc(F)c3cc[nH]c23)c(Cl)c2c1NC(C)(C)CC2C__409__CHEMBL1871_Ki: 779.9999999999999 nM','O=C(c1cccc(N(Cc2ccccc2)c2ccc([N+](=O)[O-])cc2)c1)N1CCCC1__410__CHEMBL1871_Ki: 370.0 nM','O=C(c1ccc(N(Cc2ccccc2)c2ccc([N+](=O)[O-])cc2)cc1)N1CCCC1__411__CHEMBL1871_Ki: 339.99999999999983 nM','Cn1cc(N(Cc2ccccc2)c2ccc([N+](=O)[O-])cc2)cc1C(N)=O__412__CHEMBL1871_Ki: 220.0 nM','Cn1cc(N(Cc2ccccc2)c2ccc([N+](=O)[O-])cc2)cc1CO__413__CHEMBL1871_Ki: 170.00000000000006 nM','CC(=O)c1ccc(N(Cc2ccccc2)c2cc(C(=O)N3CCCC3)n(C)c2)cc1__414__CHEMBL1871_Ki: 135.0 nM','Cn1cc(N(Cc2ccccc2)c2ccccc2[N+](=O)[O-])cc1C(=O)N1CCCC1__415__CHEMBL1871_Ki: 1300.0000000000005 nM','Cn1cc(N(CC2CCCCC2)c2ccc([N+](=O)[O-])cc2)cc1C(=O)N1CCCC1__416__CHEMBL1871_Ki: 519.9999999999999 nM','CC(C)N(c1ccc([N+](=O)[O-])cc1)c1cc(C(=O)N2CCCC2)n(C)c1__417__CHEMBL1871_Ki: 3399.999999999998 nM','CCN(c1ccc([N+](=O)[O-])cc1)c1cc(C(=O)N2CCCC2)n(C)c1__418__CHEMBL1871_Ki: 2000.0 nM','CN(c1ccc([N+](=O)[O-])cc1)c1cc(C(=O)N2CCCC2)n(C)c1__419__CHEMBL1871_Ki: 3600.0 nM','Cc1cc(C)cc(N(Cc2ccc(CO)cc2)c2cc(C(=O)N3CCCC3)n(C)c2)c1__420__CHEMBL1871_Ki: 2199.9999999999995 nM','Cc1cc(C)cc(N(Cc2ccc(O)cc2)c2cc(C(=O)N3CCCC3)n(C)c2)c1__421__CHEMBL1871_Ki: 689.9999999999999 nM','Cc1cc(C)cc(N(Cc2ccccc2)c2cc(C(=O)N3CCCC3)n(C)c2)c1__422__CHEMBL1871_Ki: 350.0 nM','Cc1cc(C)cc(N(CC2CCCCC2)c2cc(C(=O)N3CCCC3)n(C)c2)c1__423__CHEMBL1871_Ki: 490.00000000000017 nM','Cc1cc(C)cc(N(c2cc(C(=O)N3CCCC3)n(C)c2)C(C)C)c1__424__CHEMBL1871_Ki: 2700.0000000000005 nM','CCN(c1cc(C)cc(C)c1)c1cc(C(=O)N2CCCC2)n(C)c1__425__CHEMBL1871_Ki: 2700.0000000000005 nM','Cc1cc(C)cc(N(C)c2cc(C(=O)N3CCCC3)n(C)c2)c1__426__CHEMBL1871_Ki: 6100.000000000003 nM','Cn1cc(Nc2ccc([N+](=O)[O-])cc2)cc1C(=O)N1CCCC1__427__CHEMBL1871_Ki: 4900.000000000002 nM','Cc1cc(C)cc(Nc2cc(C(=O)N3CCCC3)n(C)c2)c1__428__CHEMBL1871_Ki: 3099.9999999999995 nM','Cn1cc(N(Cc2ccccc2)c2ccc([N+](=O)[O-])cc2)cc1C(=O)N1CCc2ccccc21__429__CHEMBL1871_Ki: 9.0 nM','Cn1cc(N(Cc2ccccc2)c2ccc([N+](=O)[O-])c(C(F)(F)F)c2)cc1C(=O)N1CCCC1__430__CHEMBL1871_Ki: 48.99999999999999 nM','C[C@@]1(C(=O)Nc2nccs2)CC2c3ccccc3C1c1ccccc12__431__CHEMBL1871_Ki: 7400.000000000001 nM','CC12CC(C)(C(=O)Nc3nccs3)C(c3ccccc31)c1ccccc12__432__CHEMBL1871_Ki: 2900.0 nM','CC12CC(C)(C(=O)Nc3nncs3)C(c3ccccc31)c1ccccc12__433__CHEMBL1871_Ki: 9300.000000000002 nM','Cc1c(/N=C2\O[C@@H](C(C)C)[C@@H]3[C@H](O)CCN23)ccc(C#N)c1Cl__434__CHEMBL1871_Ki: 1.4285714285714286 nM','Cc1c(/N=C2\NC[C@@H]3[C@H](O)CCN23)ccc(C#N)c1Cl__435__CHEMBL1871_Ki: 10.0 nM','Cc1c(/N=C2\N(C)C[C@@H]3[C@H](O)CCN23)ccc(C#N)c1Cl__436__CHEMBL1871_Ki: 1.9 nM','Cc1c(/N=C2\N(C(N)=O)C[C@@H]3[C@H](O)CCN23)ccc(C#N)c1Cl__437__CHEMBL1871_Ki: 19.0 nM','Cc1c(N2C(NC#N)N3CC[C@H](O)[C@H]3[C@@H]2C)ccc(C#N)c1Cl__438__CHEMBL1871_Ki: 17.0 nM','C[C@](O)(CSc1ccc(NC(=O)CCl)cc1)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__439__CHEMBL1871_Ki: 1.65 nM','CC(=O)Nc1ccc(OC[C@](C)(O)C(=O)Nc2ccc([N+](=O)[O-])c(C(F)(F)F)c2)cc1__440__CHEMBL1871_Ki: 4.0 nM','C[C@](O)(COc1ccc(F)cc1)C(=O)Nc1ccc([N+](=O)[O-])c(C(F)(F)F)c1__441__CHEMBL1871_Ki: 6.1 nM','C[C@](O)(COc1ccc(Cl)c(F)c1)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__442__CHEMBL1871_Ki: 1.7 nM','C[C@@]1(C(=O)Nc2ccc(C#N)c(C(F)(F)F)c2)CC(C(F)(F)F)=NN1__443__CHEMBL1871_Ki: 630.0 nM','N#Cc1ccc(N2[C@H]3CC[C@@H]2C[C@H](O)C3)c2ccccc12__444__CHEMBL1871_Ki: 5.000000000000001 nM','CN(C)C1CC(C(C)(C)CO)Nc2ccc([N+](=O)[O-])cc21__445__CHEMBL1871_Ki: 14.9 nM','C=C[C@@](O)(c1nc2cc(Cl)c(Cl)cc2[nH]1)C(F)(F)F__446__CHEMBL1871_Ki: 1.1 nM','CC(C)CNc1cc(CCc2cccc3ccccc23)nc(NCc2cccc3ccccc23)n1__447__CHEMBL1871_Ki: 1500.0000000000007 nM','Cc1ccc(C(=O)CC(Nc2ccc([N+](=O)[O-])cc2)c2ccsc2)cc1__448__CHEMBL1871_Ki: 10.4 nM','N#Cc1ccc(C(=O)CC(Nc2ccc([N+](=O)[O-])cc2)c2ccsc2)cc1__449__CHEMBL1871_Ki: 2.3 nM','Cc1ccc(C(=O)CC(Nc2ccc([N+](=O)[O-])cc2)c2ccccc2)cc1__450__CHEMBL1871_Ki: 17.999999999999996 nM','COc1ccc(NC(CC(=O)c2ccc(C)cc2)c2ccccc2)cc1__451__CHEMBL1871_Ki: 4522.999999999998 nM','COc1cc(C(CC(=O)c2ccc(C)cc2)Nc2ccc([N+](=O)[O-])cc2)cc(OC)c1OC__452__CHEMBL1871_Ki: 490.00000000000017 nM','COc1cc(C(CC(=O)c2cccc(C)c2)Nc2ccc([N+](=O)[O-])cc2)cc(OC)c1OC__453__CHEMBL1871_Ki: 1530.9999999999993 nM','COc1cc(C(CC(=O)c2cccc(F)c2)Nc2ccc([N+](=O)[O-])cc2)cc(OC)c1OC__454__CHEMBL1871_Ki: 3177.9999999999995 nM','Cc1cccc(C(=O)CC(Nc2ccc([N+](=O)[O-])cc2)c2cccc(F)c2)c1__455__CHEMBL1871_Ki: 64.99999999999999 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)c1cccc(F)c1)c1cccc(F)c1__456__CHEMBL1871_Ki: 50.99999999999999 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)c1cccc(F)c1)c1cccc(Cl)c1__457__CHEMBL1871_Ki: 109.99999999999996 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)c1cccc(F)c1)c1cccc(Br)c1__458__CHEMBL1871_Ki: 124.00000000000004 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)c1cccc(F)c1)c1ccccc1__459__CHEMBL1871_Ki: 63.0 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)c1cccc(F)c1)c1ccc(F)cc1__460__CHEMBL1871_Ki: 30.0 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)c1cccc(F)c1)c1ccc(Cl)cc1__461__CHEMBL1871_Ki: 17.999999999999996 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)c1cccc(F)c1)c1ccc(Br)cc1__462__CHEMBL1871_Ki: 38.99999999999999 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)c1cccc(F)c1)c1ccc(-c2ccccc2)cc1__463__CHEMBL1871_Ki: 417.00000000000006 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)c1cccc(F)c1)c1ccc(C2CCCCC2)cc1__464__CHEMBL1871_Ki: 1010.0 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)c1cccc(F)c1)c1ccc(N2CCOCC2)cc1__465__CHEMBL1871_Ki: 283.0 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)c1ccc(F)cc1)c1cccc(Cl)c1__466__CHEMBL1871_Ki: 493.00000000000017 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)c1ccc(C(F)(F)F)cc1)c1cccc(F)c1__467__CHEMBL1871_Ki: 1313.9999999999998 nM','N#Cc1cccc(C(=O)CC(Nc2ccc([N+](=O)[O-])cc2)c2ccc(C(F)(F)F)cc2)c1__468__CHEMBL1871_Ki: 883.0 nM','COc1ccc(C(=O)CC(Nc2ccc([N+](=O)[O-])cc2)c2ccc(C(F)(F)F)cc2)cc1__469__CHEMBL1871_Ki: 319.9999999999999 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)c1ccc(C(F)(F)F)cc1)c1ccc(Cl)cc1__470__CHEMBL1871_Ki: 635.9999999999999 nM','Cc1ccc(C(=O)CC(Nc2ccc([N+](=O)[O-])cc2)C2CCCCC2)cc1__471__CHEMBL1871_Ki: 115.00000000000004 nM','COc1ccc(C(=O)CC(Nc2ccc([N+](=O)[O-])cc2)C2CCCCC2)cc1__472__CHEMBL1871_Ki: 37.0 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)C1CCCCC1)c1ccc(Br)cc1__473__CHEMBL1871_Ki: 35.0 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)C1CCCCC1)c1ccc(Cl)cc1__474__CHEMBL1871_Ki: 45.00000000000001 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)C1CCCCC1)c1ccc(F)cc1__475__CHEMBL1871_Ki: 63.99999999999999 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)C1CCCCC1)c1cccc(F)c1__476__CHEMBL1871_Ki: 63.99999999999999 nM','COc1cccc(C(=O)CC(Nc2ccc([N+](=O)[O-])cc2)C2CCCCC2)c1__477__CHEMBL1871_Ki: 406.00000000000017 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)C1CCCCC1)c1ccc(Cl)c(Cl)c1__478__CHEMBL1871_Ki: 140.00000000000006 nM','O=C(CC(Nc1ccc([N+](=O)[O-])cc1)C1CCCCC1)c1ccccc1__479__CHEMBL1871_Ki: 74.00000000000001 nM','Cc1ccc(C(=O)CC(Nc2cccc([N+](=O)[O-])c2)c2cccc(F)c2)cc1__480__CHEMBL1871_Ki: 203.00000000000003 nM','Cc1ccc(C(=O)CC(Nc2ccc(F)cc2)c2cccc(F)c2)cc1__481__CHEMBL1871_Ki: 321.99999999999994 nM','Cc1ccc(C(=O)CC(Nc2ccc(F)c(F)c2)c2cccc(F)c2)cc1__482__CHEMBL1871_Ki: 1213.9999999999998 nM','C[C@]12CNC[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__483__CHEMBL1871_Ki: 21.0 nM','CN1C(=O)[C@@]2(C)O[C@@](C)(C1=O)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__484__CHEMBL1871_Ki: 20.000000000000004 nM','C[C@@]12O[C@@](C)(C(=O)N(CC3CC3)C1=O)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__485__CHEMBL1871_Ki: 49.99999999999999 nM','CC(C)[N+]1([O-])C(=O)[C@@]2(C)O[C@@](C)(C1=O)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__486__CHEMBL1871_Ki: 3600.0 nM','CC(C)N1C(=O)[C@@]2(C)O[C@@](C)(C1=O)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__487__CHEMBL1871_Ki: 13.999999999999998 nM','C[C@]12CN(O)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__488__CHEMBL1871_Ki: 37.0 nM','CON1C[C@@]2(C)O[C@@](C)(C1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__489__CHEMBL1871_Ki: 3.7 nM','CCCN1C[C@@]2(C)O[C@@](C)(C1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__490__CHEMBL1871_Ki: 13.999999999999998 nM','CCC(=O)N1C[C@@]2(C)O[C@@](C)(C1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__491__CHEMBL1871_Ki: 83.99999999999999 nM','CC(C)C(=O)N1C[C@@]2(C)O[C@@](C)(C1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__492__CHEMBL1871_Ki: 38.99999999999999 nM','C[C@]12CN(C(=O)C3CC3)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__493__CHEMBL1871_Ki: 36.0 nM','C[C@]12CN(C(=O)c3ccccc3)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__494__CHEMBL1871_Ki: 23.0 nM','CCOC(=O)N1C[C@@]2(C)O[C@@](C)(C1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__495__CHEMBL1871_Ki: 5.700000000000001 nM','CCCOC(=O)N1C[C@@]2(C)O[C@@](C)(C1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__496__CHEMBL1871_Ki: 6.6 nM','CC(C)OC(=O)N1C[C@@]2(C)O[C@@](C)(C1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__497__CHEMBL1871_Ki: 10.999999999999995 nM','CCNC(=O)N1C[C@@]2(C)O[C@@](C)(C1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__498__CHEMBL1871_Ki: 176.00000000000009 nM','CC(C)NC(=O)N1C[C@@]2(C)O[C@@](C)(C1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__499__CHEMBL1871_Ki: 98.0 nM','C[C@]12CN(C(=O)Nc3ccccc3)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__500__CHEMBL1871_Ki: 40.000000000000014 nM','C[C@]12CN(C(=O)Nc3ccc(F)cc3)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__501__CHEMBL1871_Ki: 29.0 nM','C[C@]12CN(S(C)(=O)=O)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__502__CHEMBL1871_Ki: 56.00000000000001 nM','CCS(=O)(=O)N1C[C@@]2(C)O[C@@](C)(C1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__503__CHEMBL1871_Ki: 16.0 nM','C[C@]12CN(S(=O)(=O)c3ccccc3)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__504__CHEMBL1871_Ki: 12.000000000000002 nM','C[C@]12CN(S(=O)(=O)c3ccc(F)cc3)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__505__CHEMBL1871_Ki: 32.00000000000001 nM','C[C@]12CN(S(=O)(=O)c3ccccn3)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__506__CHEMBL1871_Ki: 93.0 nM','C[C@]12CN(c3cccc(C(N)=O)c3)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__507__CHEMBL1871_Ki: 9.0 nM','C[C@]12CN(c3cccc(S(N)(=O)=O)c3)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__508__CHEMBL1871_Ki: 22.0 nM','C[C@]12CN(c3cccc(S(C)(=O)=O)c3)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__509__CHEMBL1871_Ki: 9.4 nM','C[C@]12CN(c3cc(Cl)ncn3)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__510__CHEMBL1871_Ki: 3.5000000000000004 nM','C[C@]12CN(c3ncccn3)C[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__511__CHEMBL1871_Ki: 6.1 nM','Cc1cc(-c2cccc3cc[nH]c23)c(Cl)c2c1NC(C)(C)C(O)C2(C)C__512__CHEMBL1871_Ki: 915.0000000000003 nM','CC(C)n1cc(-c2ccc(C#N)c(F)c2)c2ccc(NS(C)(=O)=O)cc21__513__CHEMBL1871_Ki: 647.9999999999999 nM','COc1cc(-c2cn(C(C)C)c3cc(NS(C)(=O)=O)ccc23)ccc1C#N__514__CHEMBL1871_Ki: 490.00000000000017 nM','Cc1cc(-c2cn(C(C)C)c3cc(NS(C)(=O)=O)ccc23)ccc1C#N__515__CHEMBL1871_Ki: 403.00000000000017 nM','CCn1cc(-c2ccc(C#N)cc2)c2ccc(NS(C)(=O)=O)cc21__516__CHEMBL1871_Ki: 2590.0000000000005 nM','C[C@](c1ccc(F)cc1F)(c1c[nH]c2c(NS(C)(=O)=O)cccc12)C1CC1__517__CHEMBL1871_Ki: 676.0 nM','COc1ccc(C(c2ccccc2)c2c[nH]c3ccccc23)cc1__518__CHEMBL1871_Ki: 68.9 nM','Cc1c(N[C@@H](c2nnc(-c3ccc(C#N)cc3)o2)[C@H](C)O)ccc(C#N)c1Cl__519__CHEMBL1871_Ki: 7.0 nM','C[C@]12CC[C@H]3[C@@H](CCC4=CC(=O)CC[C@@]43C)[C@@H]1CC[C@@H]2O__520__CHEMBL1871_Ki: 29.0 nM','C[C@H]1c2c(cc(F)c(-c3cccc4cc[nH]c34)c2F)NC(C)(C)[C@@H]1O__521__CHEMBL1871_Ki: 1430.0000000000002 nM','CCO/N=C1/c2c(cc(F)c(-c3cccc4c(C)c[nH]c34)c2F)NC(C)(C)C1O__522__CHEMBL1871_Ki: 430.00000000000017 nM','CO/N=C1/c2c(cc(F)c(-c3cccc4c(C)c[nH]c34)c2F)NC(C)(C)C1O__523__CHEMBL1871_Ki: 2800.0000000000014 nM','Cc1c[nH]c2c(-c3c(F)cc4c(c3F)/C(=N/OC(C)(C)CO)CC(C)(C)N4)cccc12__524__CHEMBL1871_Ki: 290.0 nM','Cc1c[nH]c2c(-c3c(F)cc4c(c3F)/C(=N/OC(C)C)CC(C)(C)N4)cccc12__525__CHEMBL1871_Ki: 1500.0000000000007 nM','CC1(C)C/C(=N\OC(C)(C)C)c2c(cc(F)c(-c3cccc4c(Cl)c[nH]c34)c2F)N1__526__CHEMBL1871_Ki: 89.99999999999996 nM','Cc1c[nH]c2c(-c3c(F)cc4c(c3F)/C(=N/OC(C)(C)C)CC(C)(C)N4)cccc12__527__CHEMBL1871_Ki: 1000.0 nM','C[C@](O)(CS(=O)(=O)c1cccc2ccccc12)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__528__CHEMBL1871_Ki: 2000.0 nM','C[C@](O)(CS(=O)(=O)c1ccccc1Cc1ccccc1)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__529__CHEMBL1871_Ki: 2000.0 nM','C[C@](O)(CS(=O)(=O)c1ccccc1-c1ccccc1)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__530__CHEMBL1871_Ki: 2000.0 nM','CC(C)(C(=O)Nc1nccs1)[C@@H](c1ccccc1)c1ccc(O)cc1__531__CHEMBL1871_Ki: 1058.0 nM','CC(C)(C(=O)Nc1nccs1)[C@@H](c1ccccc1)c1ccc(O)c(F)c1__532__CHEMBL1871_Ki: 1034.0 nM','CC(C)(C(=O)Nc1nccs1)[C@@H](c1ccccc1)c1ccc(O)c(Br)c1__533__CHEMBL1871_Ki: 370.0 nM','CC(C)(C(=O)Nc1nncs1)[C@@H](c1ccccc1)c1ccc(O)c(F)c1__534__CHEMBL1871_Ki: 992.9999999999997 nM','CC(C)(C(=O)Nc1nccs1)[C@H]1c2ccccc2Oc2cc(O)ccc21__535__CHEMBL1871_Ki: 2341.0 nM','CC(C)(C(=O)Nc1nncs1)[C@H]1c2ccccc2Oc2cc(O)ccc21__536__CHEMBL1871_Ki: 695.9999999999997 nM','O=c1[nH]c2cc(/C=C3\c4ccccc4COc4cc(F)ccc43)ccc2n1[C@H]1C[C@H]2COCCN2C1__537__CHEMBL1871_Ki: 1170.0000000000002 nM','CC(=O)N1CCN(CCOc2ccc(C3CCN(C4=Nn5c(nnc5C(F)(F)F)CC4)CC3)cc2)CC1__538__CHEMBL1871_Ki: 2199.9999999999995 nM','CC(C(=O)Nc1nncs1)[C@@H](c1ccccc1)c1ccc2c(cnn2-c2ccc(F)cc2)c1__539__CHEMBL1871_Ki: 243.0 nM','CCCC(c1ccc2c(cnn2-c2ccc(F)cc2)c1)C(C)(C)C(=O)Nc1nncs1__540__CHEMBL1871_Ki: 2512.999999999999 nM','C[C@@H]1C[C@H]2[C@@H]3CCC4=CC(=O)C=C[C@]4(C)[C@@]3(F)[C@@H](O)C[C@]2(C)[C@@]1(O)C(=O)CO__541__CHEMBL1871_Ki: 1409.9999999999993 nM','CS(=O)(=O)Nc1cccc(C=C2c3ccccc3CCc3ccccc32)c1__542__CHEMBL1871_Ki: 417.99999999999983 nM','C/C(=C1/c2ccccc2COc2ccccc21)c1cccc(NS(C)(=O)=O)c1__543__CHEMBL1871_Ki: 5.98 nM','CC/C(=C1/c2ccccc2COc2ccccc21)c1cccc(NS(C)(=O)=O)c1__544__CHEMBL1871_Ki: 9.74 nM','CC/C(=C1\c2ccccc2OCc2cccc(OC)c21)c1cccc(NS(C)(=O)=O)c1__545__CHEMBL1871_Ki: 238.99999999999991 nM','CC(C)C[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](CC(N)=O)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](Cc1ccc(O)cc1)NC(=O)[C@H](CS)NC(=O)[C@H](C)N)C(=O)N[C@@H](CC1CCCCC1)C(=O)N[C@@H](CCC(=O)O)C(=O)NCC(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CS)C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](CS)C(=O)O)[C@@H](C)O__546__CHEMBL1871_Ki: 2300.000000000001 nM','CC(C)C[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](CC(N)=O)NC(=O)[C@H](CC1CCCCC1)NC(=O)[C@H](Cc1ccc(O)cc1)NC(=O)[C@@H](CS)NC(=O)[C@H](C)N)C(=O)N[C@@H](Cc1ccccc1)C(=O)N[C@@H](CCC(=O)O)C(=O)NCC(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CS)C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](CS)C(=O)O)[C@@H](C)O__547__CHEMBL1871_Ki: 3000.0000000000014 nM','CC(C)C[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](CC(N)=O)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](Cc1ccc(O)cc1)NC(=O)[C@H](CS)NC(=O)[C@H](C)N)C(=O)N[C@@H](Cc1ccccc1Cl)C(=O)N[C@@H](CCC(=O)O)C(=O)NCC(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CS)C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](CS)C(=O)O)[C@@H](C)O__548__CHEMBL1871_Ki: 3000.0000000000014 nM','CC(C)C[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1cnc[nH]1)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](Cc1ccc(O)cc1)NC(=O)[C@H](CS)NC(=O)[C@H](C)N)C(=O)N[C@@H](Cc1ccccc1)C(=O)N[C@@H](CCC(=O)O)C(=O)NCC(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CS)C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](CS)C(=O)O)[C@@H](C)O__549__CHEMBL1871_Ki: 7000.000000000003 nM','CC(C)C[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](Cc1ccc(O)cc1)NC(=O)[C@H](CS)NC(=O)[C@H](C)N)C(=O)N[C@@H](Cc1ccccc1)C(=O)N[C@@H](CCC(=O)O)C(=O)NCC(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CS)C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](CS)C(=O)O)[C@@H](C)O__550__CHEMBL1871_Ki: 4000.0000000000014 nM','CC(C)C[C@H](NC(=O)[C@H](CS)NC(=O)[C@@H](NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](Cc1ccc(O)cc1)NC(=O)[C@H](CS)NC(=O)[C@H](C)N)C(C)C)C(=O)N[C@@H](Cc1ccccc1)C(=O)N[C@@H](CCC(=O)O)C(=O)NCC(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CS)C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](CS)C(=O)O)[C@@H](C)O__551__CHEMBL1871_Ki: 3000.0000000000014 nM','CC(C)C[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](CC(N)=O)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](Cc1ccc(O)cc1)NC(=O)[C@H](CS)NC(=O)[C@H](C)N)C(=O)N[C@@H](Cc1ccccc1)C(=O)N[C@@H](CCC(=O)O)C(=O)NCC(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CS)C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](CS)C(=O)O)[C@@H](C)O__552__CHEMBL1871_Ki: 200.00000000000003 nM','CC(C)C[C@H](NC(=O)[C@H](Cc1ccc(O)cc1)NC(=O)[C@H](CS)NC(=O)[C@H](C)N)C(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CS)C(=O)N[C@@H](CC(C)C)C(=O)N[C@@H](CC(C)C)C(=O)N[C@@H](CCC(=O)O)C(=O)NCC(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CS)C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](CS)C(=O)O)[C@@H](C)O__553__CHEMBL1871_Ki: 1400.0000000000007 nM','CC(C)C[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](CC(N)=O)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@H](CS)NC(=O)[C@H](C)N)C(=O)N[C@@H](Cc1ccccc1)C(=O)N[C@@H](CCC(=O)O)C(=O)NCC(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CS)C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](CS)C(=O)O)[C@@H](C)O__554__CHEMBL1871_Ki: 12000.000000000007 nM','CC(C)C[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](C)N)C(=O)N[C@@H](Cc1ccccc1)C(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CS)C(=O)N[C@@H](CC(C)C)C(=O)N[C@@H](Cc1ccccc1)C(=O)N[C@@H](CCC(=O)O)C(=O)NCC(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CS)C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](CS)C(=O)O)[C@@H](C)O__555__CHEMBL1871_Ki: 3000.0000000000014 nM','CC(C)C[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](CC(N)=O)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](Cc1ccc(O)cc1)NC(=O)[C@H](CS)NC(=O)[C@H](C)N)C(=O)N[C@@H](Cc1ccccc1)C(=O)N[C@@H](CCC(=O)O)C(=O)NCC(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CS)C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](CS)C(=O)O)[C@@H](C)O__556__CHEMBL1871_Ki: 1700.0000000000007 nM','CC(C)C[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](CC(N)=O)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](Cc1ccc(O)cc1)NC(=O)[C@H](CS)NC(=O)[C@H](C)N)C(=O)N[C@@H](Cc1ccccc1)C(=O)N[C@@H](CCC(=O)O)C(=O)NCC(=O)N[C@@H](CC(N)=O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CS)C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCCNC(=N)N)C(=O)N[C@@H](CS)C(=O)O)[C@@H](C)O__557__CHEMBL1871_Ki: 2000.0 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__558__CHEMBL1871_Ki: 3000.0000000000014 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](CC1CCCCC1)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__559__CHEMBL1871_Ki: 56000.00000000004 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](CC1CCCCC1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__560__CHEMBL1871_Ki: 11000.000000000007 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1Cl)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__561__CHEMBL1871_Ki: 400.00000000000017 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1Cl)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__562__CHEMBL1871_Ki: 2199.9999999999995 nM','CC(C)C[C@H](NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](Cc1ccccc1)C(=O)N[C@@H](CS)C(=O)N[C@@H](Cc1ccccc1)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__563__CHEMBL1871_Ki: 3600.0 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCSC)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__564__CHEMBL1871_Ki: 4100.0 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCCCN)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__565__CHEMBL1871_Ki: 2700.0000000000005 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CO)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__566__CHEMBL1871_Ki: 2499.9999999999995 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CC(C)C)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__567__CHEMBL1871_Ki: 10000.0 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__568__CHEMBL1871_Ki: 13000.000000000005 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CCCCN)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__569__CHEMBL1871_Ki: 1899.9999999999993 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](CCC(=O)O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__570__CHEMBL1871_Ki: 2099.999999999999 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](CCC(N)=O)C(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__571__CHEMBL1871_Ki: 2099.999999999999 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__572__CHEMBL1871_Ki: 1300.0000000000005 nM','CC[C@H](C)[C@H](NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CC(C)C)NC(=O)[C@H](CCC(=O)O)NC(=O)[C@H](CS)NC(=O)[C@H](Cc1ccccc1)NC(=O)[C@H](CCCNC(=N)N)NC(=O)[C@@H](N)CC(N)=O)C(=O)N[C@@H](CCC(N)=O)C(=O)NCC(=O)N[C@H](C(=O)NCC(=O)N[C@@H](CC(=O)O)C(=O)N[C@H](C(=O)N[C@@H](CCCCN)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(=O)O)C(=O)N[C@@H](Cc1c[nH]c2ccccc12)C(=O)N[C@@H](C)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCC(N)=O)C(=O)O)C(C)C)[C@@H](C)O__573__CHEMBL1871_Ki: 4100.0 nM','CNC(=O)c1ccc(N2C(=S)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)C23CCOCC3)cc1F__574__CHEMBL1871_Ki: 126.10000000000002 nM','N#Cc1ccc(N2C(=O)[C@]3(CCOC3)N(c3ccc(C(N)=O)c(F)c3)C2=S)cc1C(F)(F)F__575__CHEMBL1871_Ki: 14.1 nM','COC(=O)c1ccc(N2C(=S)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@]23CCOC3)cc1F__576__CHEMBL1871_Ki: 11.900000000000002 nM','CNC(=O)c1ccc(N2C(=S)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)C2(C)CO)cc1F__577__CHEMBL1871_Ki: 43.29999999999999 nM','CNC(=O)c1ccc(N2CCC(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C2=S)cc1F__578__CHEMBL1871_Ki: 575.6000000000001 nM','CNC(=O)c1ccc(N2C(=S)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)C2(COC)COC)cc1F__579__CHEMBL1871_Ki: 584.6 nM','CCOC(=O)CC1(C)C(=O)N(c2ccc(C#N)c(C(F)(F)F)c2)C(=S)N1c1ccc(C(=O)NC)c(F)c1__580__CHEMBL1871_Ki: 235.9 nM','CNC(=O)c1ccc(N2C(=S)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)C2(C)COCc2ccccc2)cc1F__581__CHEMBL1871_Ki: 514.4999999999999 nM','CCC(=O)O[C@]1(C(=O)CO)CC[C@H]2[C@@H]3CCC4=CC(=O)CC[C@]4(C)[C@H]3CC[C@@]21C__582__CHEMBL1871_Ki: 40.000000000000014 nM','COc1cc(F)ccc1-c1c(CN(C)Cc2ccccc2)[nH]c2c(NS(C)(=O)=O)cc(C(C)C)cc12__583__CHEMBL1871_Ki: 232.00000000000009 nM','COc1cc(F)ccc1-c1c(CN(C)Cc2ccccc2)[nH]c2c(N)cc(F)cc12__584__CHEMBL1871_Ki: 4140.000000000001 nM','COc1ccc(F)cc1-c1c[nH]c2c(NC(C)=O)cccc12__585__CHEMBL1871_Ki: 6120.000000000003 nM','COc1cc(NS(C)(=O)=O)c2[nH]c(C)c(-c3ccccc3)c2c1__586__CHEMBL1871_Ki: 4060.0000000000014 nM','COc1cc(NS(C)(=O)=O)c2[nH]c(C)c(-c3cc(F)ccc3OC)c2c1__587__CHEMBL1871_Ki: 1119.9999999999998 nM','CS(=O)(=O)Nc1cccc2cc[nH]c12__588__CHEMBL1871_Ki: 355.00000000000017 nM','COc1cc(F)ccc1-c1c(CN(C)Cc2ccccc2)[nH]c2c(NS(C)(=O)=O)cc(C(C)(C)C)cc12__589__CHEMBL1871_Ki: 231.00000000000009 nM','COc1cc(F)ccc1-c1c(Cc2ccccc2)[nH]c2c(NS(C)(=O)=O)cc(C(C)C)cc12__590__CHEMBL1871_Ki: 683.9999999999999 nM','COc1ccc(F)cc1-c1c(-c2ccccc2)[nH]c2c(NS(C)(=O)=O)cccc12__591__CHEMBL1871_Ki: 905.0 nM','COc1cc(F)ccc1-c1c(C)[nH]c2c(NS(C)(=O)=O)cc(F)cc12__592__CHEMBL1871_Ki: 1130.0000000000007 nM','COc1ccc(Cl)cc1-c1c[nH]c2c(NS(C)(=O)=O)cccc12__593__CHEMBL1871_Ki: 697.0000000000003 nM','CS(=O)(=O)Nc1cccc2c(-c3cccc(Cl)c3)c[nH]c12__594__CHEMBL1871_Ki: 91.0 nM','COc1ccccc1-c1c[nH]c2c(NS(C)(=O)=O)cccc12__595__CHEMBL1871_Ki: 400.99999999999983 nM','CS(=O)(=O)Nc1cccc2c(-c3ccc(F)cc3)c[nH]c12__596__CHEMBL1871_Ki: 496.00000000000017 nM','C[C@@]12C[C@@H](C(=O)O)[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__597__CHEMBL1871_Ki: 1600.000000000001 nM','CC(C)OC(=O)[C@@H]1C[C@]2(C)O[C@]1(C)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__598__CHEMBL1871_Ki: 23.0 nM','CN(C(=O)[C@@H]1C[C@]2(C)O[C@]1(C)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12)c1ccccc1__599__CHEMBL1871_Ki: 49.99999999999999 nM','C[C@@]12C[C@@H](N)[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__600__CHEMBL1871_Ki: 31.0 nM','CCC(=O)N[C@@H]1C[C@]2(C)O[C@]1(C)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__601__CHEMBL1871_Ki: 3.0 nM','CNS(=O)(=O)N[C@@H]1C[C@]2(C)O[C@]1(C)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__602__CHEMBL1871_Ki: 49.99999999999999 nM','CC(C)NC(=O)N[C@@H]1C[C@]2(C)O[C@]1(C)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__603__CHEMBL1871_Ki: 31.0 nM','CN1CCN(OC(=O)N[C@@H]2C[C@]3(C)O[C@]2(C)[C@@H]2C(=O)N(c4ccc(C#N)c(C(F)(F)F)c4)C(=O)[C@@H]23)CC1__604__CHEMBL1871_Ki: 7.0 nM','C[C@@]12C[C@@H](NS(C)(=O)=O)[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__605__CHEMBL1871_Ki: 12.000000000000002 nM','C[C@@]12C[C@@H](NS(=O)(=O)c3ccccc3)[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__606__CHEMBL1871_Ki: 10.0 nM','C[C@@]12C[C@@H](NS(=O)(=O)c3ccccc3F)[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__607__CHEMBL1871_Ki: 1.0 nM','C[C@@]12C[C@@H](NS(=O)(=O)c3cccnc3)[C@](C)(O1)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__608__CHEMBL1871_Ki: 2.0 nM','CCS(=O)(=O)N[C@@H]1C[C@]2(C)O[C@]1(C)[C@@H]1C(=O)N(c3ccc(C#N)c(C(F)(F)F)c3)C(=O)[C@@H]12__609__CHEMBL1871_Ki: 1.7 nM','Cc1c(N[C@@H]2COC[C@@]2(C)O)ccc(C#N)c1Cl__610__CHEMBL1871_Ki: 5.21 nM','Cc1c(N[C@@H]2CCCC[C@@]2(C)O)ccc(C#N)c1Cl__611__CHEMBL1871_Ki: 16.899999999999995 nM','C[C@]1(O)CC[C@H]2[C@@H]3CCC4=CC(=O)CCC4=C3C=C[C@@]21C__612__CHEMBL1871_Ki: 2.5 nM','CNC(=O)[C@@]12[C@H]3C[C@H](C[C@@H]3F)[C@@H]1CN(c1ccc(C#N)c(C(F)(F)F)c1)S2(=O)=O__613__CHEMBL1871_Ki: 5.000000000000001 nM','CNC(=O)[C@@]12[C@@H]3CC[C@@H](C3)[C@@H]1CN(c1ccc(C#N)c(C(F)(F)F)c1)S2(=O)=O__614__CHEMBL1871_Ki: 3.0 nM','N#Cc1ccc(N2C[C@H]3[C@H]4CC[C@H](C4)[C@@]3(C(N)=O)S2(=O)=O)cc1C(F)(F)F__615__CHEMBL1871_Ki: 3.0 nM','C[C@@]12[C@H]3C[C@H](C[C@@H]3F)[C@@H]1CN(c1ccc(C#N)c(C(F)(F)F)c1)S2(=O)=O__616__CHEMBL1871_Ki: 7.999999999999999 nM','C[C@@]12[C@H]3C[C@H](C[C@@H]3O)[C@@H]1CN(c1ccc(C#N)c(C(F)(F)F)c1)S2(=O)=O__617__CHEMBL1871_Ki: 3.0 nM','N#Cc1ccc(N2C[C@H]3[C@H]4CC[C@H](C4)[C@H]3S2(=O)=O)cc1C(F)(F)F__618__CHEMBL1871_Ki: 3.0 nM','N#Cc1ccc(N2C[C@H]3[C@H]4C=C[C@H](C4)[C@H]3S2(=O)=O)cc1C(F)(F)F__619__CHEMBL1871_Ki: 12.000000000000002 nM','C[C@@]12[C@@H]3CC[C@@H](C3)[C@@H]1CN(c1ccc(C#N)c(C(F)(F)F)c1)S2(=O)=O__620__CHEMBL1871_Ki: 3.0 nM','C[C@@]12[C@@H]3C=C[C@@H](C3)[C@@H]1CN(c1ccc(C#N)c(C(F)(F)F)c1)S2(=O)=O__621__CHEMBL1871_Ki: 2.0 nM','C[C@@]12[C@@H]3CC[C@@H](C3=O)[C@@H]1CN(c1ccc(C#N)c(C(F)(F)F)c1)S2(=O)=O__622__CHEMBL1871_Ki: 7.999999999999999 nM','C[C@@]12[C@H]3C[C@H]([C@H](O)C3)[C@@H]1CN(c1ccc(C#N)c(C(F)(F)F)c1)S2(=O)=O__623__CHEMBL1871_Ki: 28.0 nM','CC1(C)CCc2cc3c(cc2N1)NC(C#N)C=C3C(F)(F)F__624__CHEMBL1871_Ki: 22.0 nM','CC1(C)CCc2cc3c(cc2N1)NC(F)C=C3C(F)(F)F__625__CHEMBL1871_Ki: 10.999999999999995 nM','C[C@](O)(COc1ccc(C#N)cc1)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__626__CHEMBL1871_Ki: 3.8 nM','C[C@](O)(CN1CCc2cc(F)c(-c3ccccc3)cc21)C(=O)Nc1ccc(C#N)c(Cl)c1__627__CHEMBL1871_Ki: 70.99999999999999 nM','C[C@](O)(CN1CCc2cc(F)c(F)cc21)C(=O)Nc1ccc(C#N)c(Cl)c1__628__CHEMBL1871_Ki: 252.00000000000009 nM','C[C@](O)(CN1CCc2ccc(F)cc21)C(=O)Nc1ccc(C#N)c(Cl)c1__629__CHEMBL1871_Ki: 490.00000000000017 nM','C[C@](O)(CN1CCc2cc(Br)ccc21)C(=O)Nc1ccc(C#N)c(Cl)c1__630__CHEMBL1871_Ki: 204.0 nM','C[C@](O)(CN1CCc2cc(F)ccc21)C(=O)Nc1ccc(C#N)c(Cl)c1__631__CHEMBL1871_Ki: 325.99999999999994 nM','C[C@](O)(CN1CCc2c(F)cccc21)C(=O)Nc1ccc(C#N)c(Cl)c1__632__CHEMBL1871_Ki: 382.00000000000017 nM','C[C@](O)(CN1CCc2cc(Cl)c(F)cc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__633__CHEMBL1871_Ki: 68.00000000000001 nM','C[C@](O)(CN1CCc2cc(F)c(F)cc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__634__CHEMBL1871_Ki: 115.00000000000004 nM','C[C@](O)(CN1CCc2ccc(F)cc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__635__CHEMBL1871_Ki: 273.0 nM','C[C@](O)(CN1CCc2c(F)cccc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__636__CHEMBL1871_Ki: 170.00000000000006 nM','C[C@](O)(Cn1cc(-c2ccccc2)c2cc(F)ccc21)C(=O)Nc1ccc(C#N)c(Cl)c1__637__CHEMBL1871_Ki: 135.0 nM','C[C@](O)(Cn1ccc2cc(F)c(-c3ccccc3)cc21)C(=O)Nc1ccc(C#N)c(Cl)c1__638__CHEMBL1871_Ki: 133.0 nM','C[C@](O)(Cn1ccc2cccc(F)c21)C(=O)Nc1ccc(C#N)c(Cl)c1__639__CHEMBL1871_Ki: 720.0000000000001 nM','C[C@](O)(Cn1ccc2ccc(F)cc21)C(=O)Nc1ccc(C#N)c(Cl)c1__640__CHEMBL1871_Ki: 156.0 nM','C[C@](O)(Cn1ccc2cc(F)ccc21)C(=O)Nc1ccc(C#N)c(Cl)c1__641__CHEMBL1871_Ki: 253.00000000000003 nM','C[C@](O)(Cn1ccc2c(F)cccc21)C(=O)Nc1ccc(C#N)c(Cl)c1__642__CHEMBL1871_Ki: 314.99999999999994 nM','C[C@](O)(Cn1cc(F)c2ccccc21)C(=O)Nc1ccc(C#N)c(Cl)c1__643__CHEMBL1871_Ki: 331.99999999999994 nM','C[C@](O)(Cn1ccc2c(F)cc(-c3ccc(F)cc3)cc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__644__CHEMBL1871_Ki: 62.0 nM','C[C@](O)(Cn1ccc2c(F)c(-c3ccccc3)ccc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__645__CHEMBL1871_Ki: 85.99999999999999 nM','C[C@](O)(Cn1ccc2c(-c3ccccc3)cccc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__646__CHEMBL1871_Ki: 83.99999999999999 nM','CCOC(=O)c1cn(C[C@](C)(O)C(=O)Nc2ccc(C#N)c(C(F)(F)F)c2)c2ccccc12__647__CHEMBL1871_Ki: 995.0000000000003 nM','C[C@](O)(Cn1ccc2cc(I)ccc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__648__CHEMBL1871_Ki: 294.0 nM','C[C@](O)(Cn1ccc2cc(Br)ccc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__649__CHEMBL1871_Ki: 316.00000000000006 nM','C[C@](O)(Cn1ccc2cc(F)c(-c3ccccc3)cc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__650__CHEMBL1871_Ki: 124.00000000000004 nM','Cc1cn(C[C@](C)(O)C(=O)Nc2ccc(C#N)c(C(F)(F)F)c2)c2ccc(F)cc12__651__CHEMBL1871_Ki: 547.0000000000001 nM','C[C@](O)(Cn1ccc2ccc([N+](=O)[O-])cc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__652__CHEMBL1871_Ki: 47.00000000000001 nM','C[C@](O)(Cn1ccc2cc([N+](=O)[O-])ccc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__653__CHEMBL1871_Ki: 433.00000000000017 nM','C[C@](O)(Cn1ccc2ccc(F)cc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__654__CHEMBL1871_Ki: 212.00000000000009 nM','C[C@](O)(Cn1ccc2c(F)cccc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__655__CHEMBL1871_Ki: 418.99999999999983 nM','C[C@](O)(Cn1ccc2ccccc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__656__CHEMBL1871_Ki: 2080.0 nM','C[C@](O)(Cn1ccc2cc(F)ccc21)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1__657__CHEMBL1871_Ki: 267.00000000000006 nM','CN(C[C@](C)(O)C(=O)Nc1ccc(C#N)c(C(F)(F)F)c1)c1ccc(C#N)c(-c2ccccc2)c1__658__CHEMBL1871_Ki: 77.99999999999999 nM'],
+colors: [
+{
+r: [238,255,254,255,0,255,212,0,255,255,255,109,255,238,255,255,170,0,0,0,0,0,28,177,77,90,255,2,12,0,235,0,228,0,151,0,128,157,0,96,0,0,80,255,80,96,51,238,28,0,0,0,38,109,96,77,106,0,12,0,9,0,148,0,9,109,255,255,255,255,255,255,255,0,255,241,255,255,255,255,255,255,255,93,80,154,90,28,0,0,112,241,73,173,86,199,96,0,255,102,99,99,241,70,22,86,238,122,177,51,48,60,96,0,148,255,251,255,235,255,215,255,241,255,255,255,99,251,254,0,9,0,12,67,15,119,0,54,0,99,35,25,109,99,102,144,12,228,190,0,0,183,73,6,109,209,255,255,255,255,255,255,251,255,255,255,255,255,255,255,255,255,255,0,122,0,0,0,41,0,167,255,0,0,51,125,0,241,90,112,0,41,9,0,0,0,0,0,0,70,44,0,255,255,255,255,0,0,0,0,0,0,167,83,0,141,77,70,0,15,0,25,119,67,12,0,0,0,122,31,41,77,38,160,0,0,64,0,0,0,0,0,73,77,93,96,0,141,255,238,238,0,0,6,31,170,31,215,248,144,44,0,255,255,144,122,119,131,83,96,67,28,99,206,44,9,41,15,0,0,64,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,0,0,183,196,119,255,183,255,138,255,0,90,90,0,255,12,0,0,0,9,54,0,0,15,0,0,255,2,80,96,0,35,122,0,0,0,28,170,0,0,38,0,0,0,0,255,228,235,241,0,44,6,57,0,51,255,0,0,0,25,0,0,0,0,0,0,0,0,51,206,255,255,255,241,96,219,202,164,70,0,9,255,0,0,0,0,255,25,0,0,67,0,0,255,173,255,255,0,22,77,9,80,0,0,0,28,235,73,255,67,251,199,193,164,148,131,255,222,255,255,255,255,241,196,219,255,255,255,255,255,0,64,255,255,255,0,0,0,2,0,0,0,0,0,235,0,0,0,255,0,0,0,255,219,255,255,83,67,119,125,80,31,0,48,209,255,183,219,255,255,190,235,122,44,41,57,83,83,206,135,93,160,190,255,9,6,67,255,0,44,0,0,99,48,44,12,0,0,0,151,112,51,28,73,0,0,35,106,0,12,0,0,0,255,238,219,206,255,241,86,0,28,255,209,255,183,255,106,255,255,255,255,255,255,199,255,255,241,255,255,170,255,255,209,0,0,170,255,255,255,255,255,255,157,255,255,255,255,255,255,128,255,206,255,255,255,255,255,255,255,255,255,255,255,255,128,0,0,57,228,231,170,222,51,167,255,255,255,255,196,167,241,255,255,241,106,206,219,255,12,67,35,0,67,35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,12,0,0,90,173,219,160,193,202,86,122,180,148,131,131,244,141,173,190,193,80,102,99,255,183,190,125,225,60,209,164,209,255,177,96],
+g: [255,189,237,193,72,226,255,164,208,148,200,255,152,255,167,145,255,168,5,192,45,168,255,255,255,255,208,232,244,160,255,188,255,200,255,168,255,255,136,255,164,176,255,204,255,255,255,255,255,120,168,176,255,255,255,255,255,176,244,168,240,101,255,220,240,255,174,74,78,211,171,148,82,0,189,252,159,193,137,78,193,82,185,255,255,255,255,255,168,176,255,252,255,255,255,255,255,220,234,255,255,255,252,255,255,255,255,255,255,255,255,255,255,204,255,230,241,200,255,234,255,193,252,167,234,148,255,241,237,136,240,160,244,255,248,255,168,255,148,255,255,255,255,255,255,255,244,255,255,184,120,255,255,237,255,255,196,148,130,137,137,174,241,189,189,85,148,126,193,174,159,163,148,0,255,176,168,77,255,168,255,196,176,176,255,255,176,252,255,255,168,255,240,136,164,152,216,220,112,255,255,224,130,141,193,211,112,21,148,148,140,152,255,255,109,255,255,255,29,248,216,255,255,255,244,101,128,104,255,255,255,255,255,255,24,101,255,220,173,0,212,184,255,255,255,255,216,255,234,255,255,200,168,237,255,255,255,255,245,255,255,212,222,222,255,255,255,255,255,255,255,255,255,255,255,240,255,248,156,21,255,164,112,72,93,8,40,0,160,109,77,136,0,160,156,204,85,0,244,53,101,255,255,255,189,255,174,255,182,176,255,255,192,222,244,0,0,0,240,255,125,13,248,80,204,222,232,255,255,144,255,255,136,64,29,255,255,192,72,255,192,168,56,0,230,255,255,252,0,255,237,255,160,255,56,220,224,77,255,220,192,101,220,77,77,0,220,255,255,115,211,215,252,255,255,255,255,255,77,240,230,56,224,144,224,222,255,160,77,255,8,184,185,255,156,204,120,255,255,240,255,176,101,164,255,255,255,193,255,241,255,255,255,255,255,204,255,130,171,126,163,252,255,255,148,148,85,100,137,168,255,71,141,52,0,176,40,232,220,29,101,136,29,255,120,208,0,193,180,56,224,108,255,189,134,255,255,255,255,255,255,224,255,255,222,255,255,200,234,255,255,255,255,255,255,255,255,255,255,255,255,255,208,240,237,255,126,204,255,93,204,255,255,255,244,128,144,184,255,255,255,255,255,216,192,255,255,168,244,173,88,136,230,255,255,255,148,252,255,148,255,196,255,145,255,193,255,222,171,171,171,219,219,255,222,156,252,211,163,255,152,196,255,132,176,255,159,137,137,74,115,137,255,196,34,137,182,171,137,0,37,255,163,126,115,148,152,45,26,174,167,167,204,115,255,204,192,255,255,255,255,255,255,255,115,82,115,215,255,255,252,230,215,252,255,255,255,185,244,255,255,77,255,255,148,192,176,0,45,29,125,220,0,120,77,77,160,77,77,192,77,45,160,255,244,184,96,255,255,255,255,255,255,255,255,255,255,255,255,248,255,255,255,255,255,255,255,222,255,255,255,255,255,255,255,255,167,255,255],
+b: [9,0,0,0,255,0,35,255,0,0,0,138,0,9,0,0,77,255,255,255,255,255,219,70,170,157,0,244,235,255,12,255,19,255,96,255,119,90,255,151,255,255,167,0,167,151,196,9,219,255,255,255,209,138,151,170,141,255,235,255,238,255,99,254,238,138,0,0,0,0,0,0,0,255,0,6,0,0,0,0,0,0,0,154,167,93,157,219,255,255,135,6,173,73,160,48,151,254,0,144,148,148,6,177,225,160,9,125,70,196,199,186,151,255,99,0,0,0,12,0,31,0,6,0,0,0,148,0,0,255,238,255,235,180,231,128,255,193,255,148,212,222,138,148,144,102,235,19,57,255,255,64,173,241,138,38,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,228,125,255,255,255,206,255,80,0,255,255,196,122,255,6,157,135,255,206,238,255,255,255,255,254,255,177,202,251,0,0,0,0,255,255,255,255,255,255,80,164,255,106,170,177,255,231,255,222,128,180,235,255,255,255,125,215,206,170,209,86,255,255,183,254,255,255,255,255,173,170,154,151,255,106,0,9,9,255,255,241,215,77,215,31,0,102,202,255,0,0,102,125,128,115,164,151,180,219,148,41,202,238,206,231,255,255,183,255,255,255,255,255,255,255,255,255,255,255,223,255,255,255,255,191,235,255,255,64,51,128,0,64,0,109,0,255,157,157,255,0,235,191,191,168,238,193,255,255,231,255,255,0,244,167,151,255,212,125,255,255,255,219,77,255,255,209,255,255,255,191,0,19,12,6,128,202,241,190,255,196,0,254,251,255,222,254,255,255,254,255,255,255,254,196,41,0,0,0,6,151,28,44,83,177,255,238,0,255,251,255,251,0,222,255,255,180,255,255,0,73,0,0,255,225,170,238,167,255,255,255,219,12,173,0,180,0,48,54,83,99,115,0,25,0,0,0,0,6,51,28,0,0,0,0,0,255,183,0,0,0,223,255,255,244,254,255,255,255,255,12,255,255,255,0,255,255,251,0,28,0,0,164,180,128,122,167,215,251,199,38,0,64,28,0,0,57,12,125,202,206,190,164,164,41,112,154,86,57,0,238,241,180,0,255,202,255,255,148,199,202,235,255,255,255,96,135,196,219,173,255,255,212,141,255,235,255,255,255,0,9,28,41,0,6,160,255,219,0,38,0,64,0,141,0,0,0,0,0,0,48,0,0,6,0,0,77,0,0,38,255,255,77,0,0,0,0,0,0,90,0,0,0,0,0,0,0,0,41,0,0,0,0,0,0,0,0,0,0,0,0,119,255,255,190,19,15,77,25,196,80,0,0,0,0,51,80,6,0,0,6,141,41,28,0,235,180,212,255,180,212,255,255,255,255,255,255,255,254,168,255,255,255,255,255,255,255,255,255,255,219,235,255,255,157,73,28,86,54,44,160,125,67,99,115,115,2,106,73,57,54,167,144,148,0,64,57,122,22,186,38,83,38,0,70,151],
+},
+{
+r: [31,31,31,31,31,31,31,31,255,255,255,255,255,31,255,31,255,255,255,31,31,31,31,255,31,31,31,31,31,31,255,31,31,31,31,31,31,255,31,31,31,31,31,31,31,31,31,31,31,31,255,31,31,31,31,31,31,31,31,31,31,255,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,255,255,31,31,31,31,31,255,31,31,255,255,255,31,31,255,31,31,255,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,255,31,31,31,255,31,31,255,31,31,31,31,31,31,255,31,31,31,255,31,31,255,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,255,31,31,255,31,31,31,31,31,31,31,31,31,31,31,31,255,255,31,31,31,31,31,31,31,255,31,31,31,31,31,31,255,255,255,31,31,31,31,31,255,255,31,31,255,31,255,31,31,31,31,31,31,31,31,255,255,255,255,31,31,31,255,255,31,31,255,31,31,31,255,255,255,31,31,31,255,31,31,31,255,255,31,31,31,31,255,31,255,255,31,255,255,31,255,31,31,255,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,255,31,31,31,31,255,255,255,255,255,255,255,31,255,255,255,31,31,255,31,31,31,31,255,31,31,255,31,255,255,255,255,31,31,255,31,31,31,31,31,31,31,31,31,31,31,31,31,255,31,31,31,31,31,31,31,31,255,31,31,31,255,31,31,31,31,31,31,31,31,31,255,31,255,31,31,31,31,31,31,31,31,31,31,31,31,255,255,255,31,255,31,31,31,31,31,255,255,255,31,255,255,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,255,255,255,31,31,31,31,31,31,31,31,31,255,255,31,31,31,31,255,31,31,31,31,255,255,31,31,31,31,255,31,31,255,255,31,31,31,31,255,255,31,255,255,255,255,31,31,255,255,255,255,255,31,31,31,255,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,255,31,31,31,31,31,255,255,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,255,255,255,255,255,255,255,31,255,255,31,31,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,31,255,255,31,255,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,255,255,31,255,255,255,255,31,255,31,31,31,255,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,255,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31],
+g: [119,119,119,119,119,119,119,119,127,127,127,127,127,119,127,119,127,127,127,119,119,119,119,127,119,119,119,119,119,119,127,119,119,119,119,119,119,127,119,119,119,119,119,119,119,119,119,119,119,119,127,119,119,119,119,119,119,119,119,119,119,127,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,127,127,119,119,119,119,119,127,119,119,127,127,127,119,119,127,119,119,127,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,127,119,119,119,127,119,119,127,119,119,119,119,119,119,127,119,119,119,127,119,119,127,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,127,119,119,127,119,119,119,119,119,119,119,119,119,119,119,119,127,127,119,119,119,119,119,119,119,127,119,119,119,119,119,119,127,127,127,119,119,119,119,119,127,127,119,119,127,119,127,119,119,119,119,119,119,119,119,127,127,127,127,119,119,119,127,127,119,119,127,119,119,119,127,127,127,119,119,119,127,119,119,119,127,127,119,119,119,119,127,119,127,127,119,127,127,119,127,119,119,127,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,127,119,119,119,119,127,127,127,127,127,127,127,119,127,127,127,119,119,127,119,119,119,119,127,119,119,127,119,127,127,127,127,119,119,127,119,119,119,119,119,119,119,119,119,119,119,119,119,127,119,119,119,119,119,119,119,119,127,119,119,119,127,119,119,119,119,119,119,119,119,119,127,119,127,119,119,119,119,119,119,119,119,119,119,119,119,127,127,127,119,127,119,119,119,119,119,127,127,127,119,127,127,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,127,127,127,119,119,119,119,119,119,119,119,119,127,127,119,119,119,119,127,119,119,119,119,127,127,119,119,119,119,127,119,119,127,127,119,119,119,119,127,127,119,127,127,127,127,119,119,127,127,127,127,127,119,119,119,127,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,127,119,119,119,119,119,127,127,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,127,127,127,127,127,127,127,119,127,127,119,119,127,127,127,127,127,127,127,127,127,127,127,127,127,127,127,127,127,119,127,127,119,127,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,127,127,119,127,127,127,127,119,127,119,119,119,127,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,127,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119],
+b: [180,180,180,180,180,180,180,180,14,14,14,14,14,180,14,180,14,14,14,180,180,180,180,14,180,180,180,180,180,180,14,180,180,180,180,180,180,14,180,180,180,180,180,180,180,180,180,180,180,180,14,180,180,180,180,180,180,180,180,180,180,14,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,14,14,180,180,180,180,180,14,180,180,14,14,14,180,180,14,180,180,14,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,14,180,180,180,14,180,180,14,180,180,180,180,180,180,14,180,180,180,14,180,180,14,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,14,180,180,14,180,180,180,180,180,180,180,180,180,180,180,180,14,14,180,180,180,180,180,180,180,14,180,180,180,180,180,180,14,14,14,180,180,180,180,180,14,14,180,180,14,180,14,180,180,180,180,180,180,180,180,14,14,14,14,180,180,180,14,14,180,180,14,180,180,180,14,14,14,180,180,180,14,180,180,180,14,14,180,180,180,180,14,180,14,14,180,14,14,180,14,180,180,14,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,14,180,180,180,180,14,14,14,14,14,14,14,180,14,14,14,180,180,14,180,180,180,180,14,180,180,14,180,14,14,14,14,180,180,14,180,180,180,180,180,180,180,180,180,180,180,180,180,14,180,180,180,180,180,180,180,180,14,180,180,180,14,180,180,180,180,180,180,180,180,180,14,180,14,180,180,180,180,180,180,180,180,180,180,180,180,14,14,14,180,14,180,180,180,180,180,14,14,14,180,14,14,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,14,14,14,180,180,180,180,180,180,180,180,180,14,14,180,180,180,180,14,180,180,180,180,14,14,180,180,180,180,14,180,180,14,14,180,180,180,180,14,14,180,14,14,14,14,180,180,14,14,14,14,14,180,180,180,14,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,14,180,180,180,180,180,14,14,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,14,14,14,14,14,14,14,180,14,14,180,180,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,180,14,14,180,14,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,14,14,180,14,14,14,14,180,14,180,180,180,14,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,14,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180,180],
+},
+{
+r: [55,55,55,55,55,55,55,228,55,55,55,55,228,55,55,55,55,228,55,55,228,228,55,55,55,55,228,55,55,55,55,55,55,55,228,55,55,55,55,55,55,55,228,55,55,55,55,228,55,55,55,228,228,55,228,55,55,55,55,55,55,55,228,55,55,55,55,55,55,55,228,55,55,55,55,55,55,228,228,55,55,55,55,55,55,55,55,228,55,55,55,55,55,55,55,55,55,55,228,55,55,55,55,55,55,55,228,55,228,55,228,55,55,55,55,55,228,55,55,55,228,55,55,55,228,55,55,228,55,55,55,228,55,228,228,55,55,55,55,228,55,55,55,55,55,55,55,55,55,55,228,55,55,55,228,55,228,55,55,55,55,55,228,55,55,55,55,55,55,55,55,55,228,55,55,55,55,55,228,55,55,55,55,55,55,55,55,55,55,55,55,55,55,55,228,228,228,55,55,55,228,228,228,55,55,55,228,55,55,228,55,55,228,228,55,55,55,55,55,55,228,55,55,55,55,55,55,55,55,55,55,55,55,55,55,55,228,55,55,228,55,55,55,55,55,55,55,55,55,228,228,55,55,228,228,228,55,55,228,55,55,55,55,228,228,55,55,55,55,55,55,228,55,55,228,55,55,55,55,55,55,55,55,55,55,55,55,228,55,55,55,55,55,55,55,55,228,55,55,55,55,55,55,228,228,55,55,55,228,55,55,228,55,55,55,55,55,55,55,55,55,55,55,55,55,55,55,55,228,55,55,55,55,55,55,55,55,55,228,55,55,55,55,228,55,55,55,55,55,55,228,228,55,55,228,55,228,55,55,55,55,55,55,228,55,55,55,228,228,55,55,228,228,55,55,55,228,55,55,55,228,55,228,55,55,55,55,55,55,55,228,228,55,55,55,55,55,55,55,228,55,55,55,55,228,55,228,55,55,55,55,55,55,55,55,55,55,228,55,55,55,55,55,55,55,55,228,228,55,228,228,55,55,55,55,55,55,55,55,55,55,55,55,55,55,228,55,55,55,55,55,228,55,55,55,55,55,55,55,55,55,55,228,55,55,228,55,55,55,228,55,55,228,55,228,55,228,55,55,55,55,55,228,55,55,55,55,228,55,55,55,228,55,55,55,55,55,55,55,55,55,55,55,55,55,55,55,228,228,228,228,228,55,55,55,55,55,55,228,55,228,55,55,55,55,55,55,55,228,55,55,55,55,55,55,55,55,228,55,55,55,55,55,228,55,55,55,55,55,55,55,55,228,55,228,55,55,228,55,228,55,55,55,228,55,55,55,55,55,228,55,55,55,55,55,55,55,55,55,55,55,55,55,55,55,55,55,55,55,55,228,55,55,55,55,228,228,55,228,55,55,228,55,228,228,228,55,55,55,55,55,55,55,55,55,228,55,55,55,55,228,55,55,55,55,228,55,55,55,55,55,55,228,55,228,55,55,55,55,55,228,55,55,55,55,55,228,55,55,55,55,55,55,228,55,55,55,228,228],
+g: [126,126,126,126,126,126,126,26,126,126,126,126,26,126,126,126,126,26,126,126,26,26,126,126,126,126,26,126,126,126,126,126,126,126,26,126,126,126,126,126,126,126,26,126,126,126,126,26,126,126,126,26,26,126,26,126,126,126,126,126,126,126,26,126,126,126,126,126,126,126,26,126,126,126,126,126,126,26,26,126,126,126,126,126,126,126,126,26,126,126,126,126,126,126,126,126,126,126,26,126,126,126,126,126,126,126,26,126,26,126,26,126,126,126,126,126,26,126,126,126,26,126,126,126,26,126,126,26,126,126,126,26,126,26,26,126,126,126,126,26,126,126,126,126,126,126,126,126,126,126,26,126,126,126,26,126,26,126,126,126,126,126,26,126,126,126,126,126,126,126,126,126,26,126,126,126,126,126,26,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,26,26,26,126,126,126,26,26,26,126,126,126,26,126,126,26,126,126,26,26,126,126,126,126,126,126,26,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,26,126,126,26,126,126,126,126,126,126,126,126,126,26,26,126,126,26,26,26,126,126,26,126,126,126,126,26,26,126,126,126,126,126,126,26,126,126,26,126,126,126,126,126,126,126,126,126,126,126,126,26,126,126,126,126,126,126,126,126,26,126,126,126,126,126,126,26,26,126,126,126,26,126,126,26,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,26,126,126,126,126,126,126,126,126,126,26,126,126,126,126,26,126,126,126,126,126,126,26,26,126,126,26,126,26,126,126,126,126,126,126,26,126,126,126,26,26,126,126,26,26,126,126,126,26,126,126,126,26,126,26,126,126,126,126,126,126,126,26,26,126,126,126,126,126,126,126,26,126,126,126,126,26,126,26,126,126,126,126,126,126,126,126,126,126,26,126,126,126,126,126,126,126,126,26,26,126,26,26,126,126,126,126,126,126,126,126,126,126,126,126,126,126,26,126,126,126,126,126,26,126,126,126,126,126,126,126,126,126,126,26,126,126,26,126,126,126,26,126,126,26,126,26,126,26,126,126,126,126,126,26,126,126,126,126,26,126,126,126,26,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,26,26,26,26,26,126,126,126,126,126,126,26,126,26,126,126,126,126,126,126,126,26,126,126,126,126,126,126,126,126,26,126,126,126,126,126,26,126,126,126,126,126,126,126,126,26,126,26,126,126,26,126,26,126,126,126,26,126,126,126,126,126,26,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,126,26,126,126,126,126,26,26,126,26,126,126,26,126,26,26,26,126,126,126,126,126,126,126,126,126,26,126,126,126,126,26,126,126,126,126,26,126,126,126,126,126,126,26,126,26,126,126,126,126,126,26,126,126,126,126,126,26,126,126,126,126,126,126,26,126,126,126,26,26],
+b: [184,184,184,184,184,184,184,28,184,184,184,184,28,184,184,184,184,28,184,184,28,28,184,184,184,184,28,184,184,184,184,184,184,184,28,184,184,184,184,184,184,184,28,184,184,184,184,28,184,184,184,28,28,184,28,184,184,184,184,184,184,184,28,184,184,184,184,184,184,184,28,184,184,184,184,184,184,28,28,184,184,184,184,184,184,184,184,28,184,184,184,184,184,184,184,184,184,184,28,184,184,184,184,184,184,184,28,184,28,184,28,184,184,184,184,184,28,184,184,184,28,184,184,184,28,184,184,28,184,184,184,28,184,28,28,184,184,184,184,28,184,184,184,184,184,184,184,184,184,184,28,184,184,184,28,184,28,184,184,184,184,184,28,184,184,184,184,184,184,184,184,184,28,184,184,184,184,184,28,184,184,184,184,184,184,184,184,184,184,184,184,184,184,184,28,28,28,184,184,184,28,28,28,184,184,184,28,184,184,28,184,184,28,28,184,184,184,184,184,184,28,184,184,184,184,184,184,184,184,184,184,184,184,184,184,184,28,184,184,28,184,184,184,184,184,184,184,184,184,28,28,184,184,28,28,28,184,184,28,184,184,184,184,28,28,184,184,184,184,184,184,28,184,184,28,184,184,184,184,184,184,184,184,184,184,184,184,28,184,184,184,184,184,184,184,184,28,184,184,184,184,184,184,28,28,184,184,184,28,184,184,28,184,184,184,184,184,184,184,184,184,184,184,184,184,184,184,184,28,184,184,184,184,184,184,184,184,184,28,184,184,184,184,28,184,184,184,184,184,184,28,28,184,184,28,184,28,184,184,184,184,184,184,28,184,184,184,28,28,184,184,28,28,184,184,184,28,184,184,184,28,184,28,184,184,184,184,184,184,184,28,28,184,184,184,184,184,184,184,28,184,184,184,184,28,184,28,184,184,184,184,184,184,184,184,184,184,28,184,184,184,184,184,184,184,184,28,28,184,28,28,184,184,184,184,184,184,184,184,184,184,184,184,184,184,28,184,184,184,184,184,28,184,184,184,184,184,184,184,184,184,184,28,184,184,28,184,184,184,28,184,184,28,184,28,184,28,184,184,184,184,184,28,184,184,184,184,28,184,184,184,28,184,184,184,184,184,184,184,184,184,184,184,184,184,184,184,28,28,28,28,28,184,184,184,184,184,184,28,184,28,184,184,184,184,184,184,184,28,184,184,184,184,184,184,184,184,28,184,184,184,184,184,28,184,184,184,184,184,184,184,184,28,184,28,184,184,28,184,28,184,184,184,28,184,184,184,184,184,28,184,184,184,184,184,184,184,184,184,184,184,184,184,184,184,184,184,184,184,184,28,184,184,184,184,28,28,184,28,184,184,28,184,28,28,28,184,184,184,184,184,184,184,184,184,28,184,184,184,184,28,184,184,184,184,28,184,184,184,184,184,184,28,184,28,184,184,184,184,184,28,184,184,184,184,184,28,184,184,184,184,184,184,28,184,184,184,28,28],
+},
+]},
+CHEMBL1871_Ki_tree: {
+x: [473.112,472.787,477.199,473.07,473.07,472.787,473.07,473.347,518.832,513.406,526.063,519.776,526.063,529.823,513.406,505.491,518.036,517.477,518.036,518.784,448.692,450.33,448.692,448.832,448.692,471.204,448.692,424.91,451.321,450.33,455.675,450.33,446.361,450.33,444.669,450.33,450.33,456.045,514.872,512.364,514.872,519.776,683.776,680.251,683.776,671.807,683.776,695.316,518.837,517.477,518.837,518.924,659.515,664.951,659.515,656.757,552.414,558.179,585.405,595.506,585.405,577.221,566.763,567.421,671.807,663.294,558.179,567.421,468.067,470.5,567.95,571.734,567.421,577.221,608.473,622.408,608.473,595.506,470.5,473.302,577.221,575.122,551.893,560.857,551.893,541.63,710.727,699.259,710.727,717.002,567.649,570.963,567.649,560.857,667.397,664.142,593.979,597.567,653.459,658.413,557.153,567.987,557.153,541.63,557.153,561.92,604.231,578.82,604.231,602.815,604.231,597.567,604.231,632.159,653.008,658.413,695.316,712.765,695.316,686.302,623.706,622.408,571.734,578.82,664.951,665.797,622.408,636.801,699.259,702.324,699.259,683.582,658.413,659.594,658.413,664.142,685.159,683.582,541.63,517.477,676.275,664.142,676.275,686.302,636.801,650.64,665.797,632.159,665.797,683.582,665.797,683.718,664.142,650.64,732.602,729.936,595.506,597.567,119.473,117.268,119.473,111.592,119.473,129.702,110.831,111.592,144.707,147.272,106.003,111.592,149.444,141.7,149.444,149.555,149.444,155.11,149.444,155.071,153.221,147.272,147.272,141.7,147.272,146.811,129.702,141.7,136.963,141.7,141.7,138.236,572.933,575.122,572.933,576.965,572.933,567.988,572.933,572.24,707.055,701.696,629.038,626.688,629.038,632.159,602.815,601.152,612.271,607.778,612.271,604.78,612.271,626.688,625.442,626.688,735.846,729.936,748.017,743.713,712.765,717.593,712.765,729.936,712.765,711.427,741.386,729.936,741.386,747.294,750.0,743.713,743.713,732.631,696.9,701.696,719.026,701.696,719.026,732.631,626.688,640.73,626.688,617.248,701.696,701.532,701.696,704.882,701.696,683.718,707.679,711.427,707.679,701.685,625.147,608.746,625.147,628.08,625.147,629.706,625.147,637.428,590.748,591.812,590.748,571.71,590.748,608.746,608.746,610.984,644.146,637.428,473.347,473.302,496.593,473.302,496.593,505.491,496.593,515.943,235.802,232.059,473.302,449.808,597.567,586.086,586.086,577.094,557.528,557.178,557.528,578.82,557.528,537.451,571.517,577.094,628.062,624.791,628.062,632.159,557.178,557.329,576.189,578.82,220.092,225.701,610.904,617.248,635.306,640.73,671.989,683.858,671.989,657.694,645.513,640.73,657.694,640.73,657.694,659.812,638.967,640.73,701.277,701.532,640.73,644.618,689.842,683.858,683.858,689.509,571.71,551.984,471.204,489.476,471.204,473.308,489.476,506.2,473.308,474.469,515.943,534.447,506.2,522.038,572.578,568.199,536.105,549.335,536.105,522.038,560.096,561.415,560.096,568.199,560.096,549.335,551.984,534.447,551.984,549.335,524.091,522.038,375.769,365.129,375.769,380.457,375.769,379.197,365.129,369.311,365.129,351.504,369.311,372.878,606.43,608.219,606.43,604.544,163.68,158.985,238.444,243.209,243.209,245.922,243.209,241.877,238.004,241.877,241.877,241.958,245.922,222.471,245.922,273.553,158.985,180.555,158.985,136.13,222.471,200.911,180.555,200.911,567.987,577.044,635.579,630.565,620.207,608.35,620.207,630.565,608.35,608.219,608.35,596.954,608.219,605.175,585.63,596.954,585.63,588.907,585.63,577.044,630.565,636.449,383.328,379.893,383.328,387.026,379.893,378.67,378.723,378.67,270.025,266.887,251.727,252.057,251.727,256.208,251.727,259.595,251.727,249.941,251.727,269.228,251.727,220.235,251.727,236.639,251.727,266.285,251.727,234.467,251.727,246.077,251.727,246.137,251.727,283.43,299.005,297.221,299.005,301.704,301.704,316.803,301.704,288.05,322.446,316.803,319.714,316.803,275.729,269.228,316.803,314.658,316.803,328.291,334.489,328.291,241.958,241.918,482.866,469.597,482.866,498.462,469.597,455.281,504.221,503.131,504.221,504.635,504.635,504.695,500.588,500.582,494.668,498.462,494.668,491.778,500.582,498.462,500.582,503.131,498.462,518.057,518.057,537.451,474.874,474.629,474.629,474.695,474.695,477.39,477.39,481.998,488.683,489.007,491.778,489.007,494.963,489.007,477.247,481.998,483.399,489.007,488.828,489.007,489.007,481.998,308.508,283.43,308.508,332.432,400.851,391.649,429.449,419.294,429.449,438.191,288.005,283.43,358.716,362.2,358.716,357.601,362.2,369.701,384.663,387.026,387.026,390.878,370.942,369.701,373.934,369.701,369.701,376.226,279.831,269.228,279.831,288.05,288.05,283.986,283.986,281.322,281.322,279.985,378.624,381.909,354.279,357.601,357.601,332.432,357.601,381.909,423.958,419.294,419.294,408.77,408.77,396.417,411.983,403.188,403.188,390.878,391.649,381.909,396.469,396.417,389.162,390.878,381.909,390.878,381.909,396.417,367.777,366.863,304.971,289.243,304.971,322.408,284.097,289.243,273.553,289.243,273.553,287.232,289.243,288.291,322.408,317.436,322.408,342.946,366.863,342.946,366.863,396.726,366.863,369.755,366.863,371.144,366.863,356.515,356.515,350.142,356.515,354.107,373.644,371.144,373.644,374.94,369.755,372.503,426.131,396.726,426.131,448.228,426.131,423.945,426.131,435.595,337.737,342.946,372.503,374.473,435.595,444.492,423.945,421.942,463.761,448.228,463.761,478.935,448.228,459.112,392.606,388.32,392.606,387.455,392.606,378.671,392.606,410.413,378.671,368.662,362.494,368.662,387.455,383.922,438.191,455.281,467.068,461.897,461.897,455.281,228.194,234.467,229.87,234.467,232.198,234.467,226.281,234.467,237.136,234.467,214.727,220.952,220.952,234.467,232.021,232.952,232.952,234.467,234.467,239.692,271.927,266.285,232.47,236.639,229.588,236.639,266.107,259.595,259.595,260.289,259.595,264.026,245.856,249.941,249.941,250.708,249.941,255.111,273.384,266.285,271.404,269.228,449.808,444.771,449.808,429.057,406.281,410.413,410.413,429.057,518.784,519.776,444.492,452.457,421.942,420.582,478.935,496.641,509.26,504.351,509.26,517.477,403.452,406.44,435.842,431.806,431.806,425.998,378.615,378.698,378.698,378.641,430.665,425.998,378.591,378.641,406.44,411.506,378.641,383.171,419.727,411.506,419.727,425.998,411.506,415.607,411.506,397.231,411.506,442.535,411.506,424.174,411.506,383.171,383.171,358.471,358.471,334.659,334.659,311.178,334.659,333.84,287.232,311.178,287.232,277.249,311.178,321.042,336.184,321.042,336.184,351.504,317.205,319.136,319.136,321.042,321.042,324.654,350.653,351.504,500.567,503.131,503.131,508.205,378.588,378.712,411.369,393.752,411.369,426.175,426.175,438.191,379.513,384.158,384.158,393.752,384.158,378.654,398.824,393.752,393.752,379.606,424.91,401.803,397.555,401.803,402.909,401.803,401.803,379.606,374.623,379.606,378.185,379.606,379.606,349.804,365.38,370.946,370.946,378.585,378.729,378.585,378.585,378.712,378.585,378.654,378.325,378.654,694.907,701.685,694.907,695.201,694.907,688.721,706.223,701.685,130.426,136.13,136.13,128.915,136.13,143.083,136.13,126.794,143.083,148.703,143.083,142.862,128.915,124.084,112.472,105.677,112.472,124.084,149.793,159.697,149.793,139.587,168.428,169.334,159.697,169.334,169.334,177.435,169.334,174.826,120.787,119.209,120.787,124.084,124.084,129.359,139.587,129.359,119.63,123.494,129.359,123.494,177.435,181.923,0.0,5.536,5.536,13.766,13.766,23.596,473.097,467.927,467.927,459.112,459.112,463.247,227.827,232.059,225.244,225.701,225.701,232.059,219.354,232.059,219.354,208.354,249.911,232.059,249.911,266.887,416.815,411.983,407.058,400.851,15.163,8.906,15.163,25.072,25.072,44.416,25.072,14.71,14.71,8.054,73.051,72.349,72.349,70.716,70.716,67.413,72.283,67.413,67.413,44.416,67.413,62.838,67.413,72.486,67.413,55.071,67.413,97.35,72.486,75.888,44.416,39.207,44.416,45.905,39.207,33.819,39.207,38.716,39.207,33.178,39.207,43.63,39.207,44.86,39.207,35.527,55.071,49.801,55.071,46.877,42.367,46.877,146.811,150.552,146.811,157.955,146.811,142.936,146.811,159.475,146.811,126.794,159.475,166.929,157.955,164.479,97.35,126.794,35.527,33.722,424.174,434.847,424.174,429.186,440.864,434.847,397.231,402.209,397.231,393.577,397.231,374.883,391.991,397.128,316.239,330.199,316.239,320.187,316.239,320.242,316.239,300.399,374.883,352.538,374.883,372.672,300.399,284.001,330.199,334.467,330.199,352.538,330.199,315.174,284.001,266.887,402.209,397.128,402.209,413.23,402.209,394.832,413.23,416.773,413.23,420.257,379.452,382.58,382.58,387.696,387.696,394.832,396.614,394.832,688.721,683.524,39.639,43.531,37.088,43.531,43.531,54.362,54.362,67.199,336.919,333.201,463.33,459.011,517.477,496.641,683.524,679.104,675.421,679.104,675.421,672.017,668.305,672.017,675.101,672.017,666.26,672.017,165.114,169.51,173.411,169.51,169.51,193.637,169.51,146.914,45.283,55.886,45.283,34.324,65.894,55.886,65.894,75.858,75.858,82.073,75.858,81.842,34.324,23.596,431.234,426.175,658.688,663.294,86.499,82.073,324.801,329.93,329.93,338.27,338.27,349.804,349.804,330.17,280.782,278.04,278.04,273.185,258.612,257.503,278.051,273.185,257.503,242.494,257.503,273.185,257.503,253.198,279.56,273.185,279.56,282.753,242.494,229.238,216.434,229.238,216.434,203.081,216.434,214.081,186.859,189.341,167.657,175.227,175.227,189.341,179.878,183.601,183.601,189.341,203.081,189.341,185.713,189.341,187.361,187.454,187.361,182.681,187.361,188.591,187.361,189.903,189.122,188.591,181.861,187.454,187.454,189.341,187.454,189.3,287.747,279.52,287.747,300.475,287.747,283.997,273.955,279.52,300.475,315.174,300.475,295.511,300.475,299.682,282.753,284.029,282.753,283.975,282.753,286.821,327.589,332.063,290.342,296.107,296.107,288.032,296.107,311.241,331.177,333.201,284.029,288.032,311.241,330.17,332.063,330.17,332.063,332.579,332.579,333.201,469.853,473.304,469.853,442.535,469.853,473.68,469.853,493.74,493.74,499.114,493.74,514.101,493.74,496.478,535.285,531.435,531.435,514.101,531.435,545.783,545.783,552.338,545.783,551.698,459.011,452.457,269.564,266.401,266.401,272.765,266.401,257.438,252.675,243.407,252.675,257.438,252.675,259.613,243.407,237.517,277.249,267.945,267.945,259.613,257.438,261.028,659.812,661.878,179.561,185.317,179.561,171.913,185.317,189.305,189.305,189.304,189.305,193.551,189.215,189.304,185.991,190.756,208.354,198.575,198.575,193.551,198.575,190.756,67.199,81.842,171.913,163.501,97.814,101.386,110.294,107.537,107.537,102.696,101.386,81.842,101.386,121.721,121.268,121.721,154.87,146.914,154.87,163.501,146.914,121.721,111.032,115.041,97.692,102.696,103.69,102.696,97.351,102.696,85.936,92.115,92.115,102.696,108.371,102.696,108.371,115.041,121.721,115.041,193.637,220.235],
+y: [9.201,15.267,22.361,25.234,25.234,15.267,25.234,37.108,56.919,59.079,659.435,653.297,659.435,664.046,59.079,62.02,629.152,617.063,629.152,641.319,155.687,142.531,155.687,160.797,155.687,161.29,155.687,157.254,134.923,142.531,137.69,142.531,136.23,142.531,141.518,142.531,142.531,143.355,660.425,665.744,660.425,653.297,466.053,468.787,466.053,473.13,466.053,457.472,607.398,617.063,607.398,601.018,290.22,292.431,290.22,294.441,432.362,430.551,406.002,384.256,406.002,426.673,433.307,428.469,473.13,478.83,430.551,428.469,61.05,56.163,327.983,323.822,428.469,426.673,390.132,395.898,390.132,384.256,56.163,49.514,426.673,445.226,590.285,578.83,590.285,605.312,273.721,278.844,273.721,270.804,570.641,565.643,570.641,578.83,413.292,417.993,359.239,357.347,428.063,423.521,611.936,622.771,611.936,605.312,611.936,608.286,326.169,319.46,326.169,321.054,326.169,357.347,326.169,298.93,421.921,423.521,457.472,463.577,457.472,443.65,391.288,395.898,323.822,319.46,292.431,299.689,395.898,401.216,278.844,274.062,278.844,287.404,423.521,428.998,423.521,417.993,282.037,287.404,605.312,617.063,430.667,417.993,430.667,443.65,401.216,408.061,299.689,298.93,299.689,287.404,299.689,313.012,417.993,408.061,450.985,455.95,384.256,357.347,411.838,407.005,411.838,397.435,411.838,429.674,390.219,397.435,473.013,476.425,392.804,397.435,442.182,450.705,442.182,435.87,442.182,443.989,442.182,438.175,474.659,476.425,476.425,450.705,476.425,502.006,429.674,450.705,452.956,450.705,450.705,446.469,460.597,445.226,460.597,465.683,460.597,465.115,460.597,468.269,328.089,326.261,270.017,242.04,270.017,298.93,321.054,316.408,231.385,225.21,231.385,229.509,231.385,242.04,237.617,242.04,457.916,455.95,346.417,341.688,463.577,464.282,463.577,455.95,463.577,479.032,449.162,455.95,449.162,445.306,340.623,341.688,341.688,337.618,327.962,326.261,332.538,326.261,332.538,337.618,242.04,219.27,242.04,244.008,326.261,336.882,326.261,321.69,326.261,313.012,493.456,479.032,493.456,507.142,100.324,103.642,100.324,95.299,100.324,103.629,100.324,98.251,105.594,101.078,105.594,106.529,105.594,103.642,103.642,99.53,97.257,98.251,37.108,49.514,64.596,49.514,64.596,62.02,64.596,79.927,424.524,427.757,49.514,40.661,357.347,365.353,365.353,371.303,312.301,303.711,312.301,319.46,312.301,310.513,374.746,371.303,292.97,288.571,292.97,298.93,303.711,297.74,314.677,319.46,440.152,437.195,245.017,244.008,216.431,219.27,193.857,187.534,193.857,202.301,221.371,219.27,202.301,219.27,202.301,193.074,212.252,219.27,343.197,336.882,219.27,214.463,187.506,187.534,187.534,182.661,106.529,108.552,161.29,159.77,161.29,169.943,159.77,156.409,169.943,175.81,79.927,93.763,156.409,150.365,149.531,144.747,140.117,128.049,140.117,150.365,136.815,141.565,136.815,144.747,136.815,128.049,108.552,93.763,108.552,128.049,155.668,150.365,618.574,618.353,618.574,622.405,618.574,615.239,618.353,627.419,618.353,610.572,627.419,632.791,687.372,676.702,687.372,693.386,578.307,576.954,646.228,644.323,644.323,628.357,644.323,658.998,662.738,658.998,658.998,670.36,628.357,616.403,628.357,627.06,576.954,590.576,576.954,562.53,616.403,603.82,590.576,603.82,622.771,634.318,655.211,658.784,661.3,664.31,661.3,658.784,664.31,676.702,664.31,655.919,676.702,680.16,646.541,655.919,646.541,643.853,646.541,634.318,658.784,660.717,373.786,382.481,373.786,360.679,382.481,389.913,395.248,389.913,436.992,440.571,262.862,256.971,262.862,265.204,262.862,242.384,262.862,278.641,262.862,294.424,262.862,265.026,262.862,272.226,262.862,257.374,262.862,226.742,262.862,264.285,262.862,258.436,262.862,272.324,365.519,371.735,365.519,356.635,356.635,366.471,356.635,341.808,366.009,366.471,372.839,366.471,296.758,294.424,366.471,371.914,366.471,373.096,374.998,373.096,670.36,676.949,295.477,282.443,295.477,307.305,282.443,268.302,258.041,273.366,258.041,246.978,246.978,240.435,286.27,290.6,329.456,307.305,329.456,350.849,290.6,307.305,290.6,273.366,307.305,309.052,309.052,310.513,429.97,424.116,424.116,415.165,415.165,403.8,403.8,389.726,377.396,372.399,350.849,372.399,374.998,372.399,392.351,389.726,374.143,372.399,367.84,372.399,372.399,389.726,281.313,272.324,281.313,291.054,326.567,323.459,267.375,280.789,267.375,253.991,275.948,272.324,291.656,282.744,291.656,301.971,282.744,278.04,365.111,360.679,360.679,343.745,272.416,278.04,281.245,278.04,278.04,276.205,319.518,294.424,319.518,341.808,341.808,353.332,353.332,363.562,363.562,370.062,322.206,318.541,305.493,301.971,301.971,291.054,301.971,318.541,281.219,280.789,280.789,293.066,293.066,306.289,363.476,354.854,354.854,343.745,323.459,318.541,301.929,306.289,347.943,343.745,318.541,343.745,318.541,306.289,718.37,713.661,665.311,646.801,665.311,682.576,647.061,646.801,627.06,646.801,627.06,605.267,646.801,652.191,682.576,684.914,682.576,698.528,713.661,698.528,713.661,708.614,713.661,707.0,713.661,729.389,713.661,724.333,724.333,727.282,724.333,731.021,740.958,729.389,740.958,747.607,707.0,700.65,702.558,708.614,702.558,684.101,702.558,695.119,702.558,716.635,700.425,698.528,700.65,695.795,716.635,728.635,695.119,687.7,664.672,684.101,664.672,647.951,684.101,687.749,14.068,16.836,14.068,5.321,14.068,13.815,14.068,22.288,13.815,12.841,11.873,12.841,5.321,0.0,253.991,268.302,270.705,269.842,269.842,268.302,221.96,226.742,230.14,226.742,219.463,226.742,226.33,226.742,218.853,226.742,208.162,214.304,214.304,226.742,200.002,208.623,208.623,226.742,226.742,223.079,252.538,257.374,278.91,272.226,274.621,272.226,234.965,242.384,242.384,234.455,242.384,238.389,283.966,278.641,278.641,285.995,278.641,282.13,257.474,257.374,300.716,294.424,40.661,42.093,40.661,31.482,24.748,22.288,22.288,31.482,641.319,653.297,728.635,738.339,687.7,682.27,647.951,631.943,611.131,606.911,611.131,617.063,536.414,531.918,574.291,569.471,569.471,560.401,567.426,562.446,562.446,552.926,562.513,560.401,556.84,552.926,531.918,526.428,552.926,544.821,545.121,526.428,545.121,560.401,526.428,528.959,526.428,499.958,526.428,526.743,526.428,518.193,526.428,544.821,544.821,559.472,559.472,573.545,573.545,591.046,573.545,568.165,605.267,591.046,605.267,595.25,591.046,597.035,605.049,597.035,605.049,610.572,583.163,588.886,588.886,597.035,597.035,598.954,614.892,610.572,268.814,273.366,273.366,271.01,230.214,224.67,208.788,187.521,208.788,230.914,230.914,253.991,187.518,191.369,191.369,187.521,191.369,202.683,187.516,187.521,187.521,167.322,157.254,159.779,155.434,159.779,153.846,159.779,159.779,167.322,167.461,167.322,161.455,167.322,167.322,159.645,218.361,217.802,217.802,216.08,212.205,216.08,216.08,224.67,216.08,202.683,198.19,202.683,520.052,507.142,520.052,524.473,520.052,532.778,509.465,507.142,562.492,562.53,562.53,587.589,562.53,562.365,562.53,527.551,562.365,562.282,562.365,566.94,587.589,612.159,612.58,613.734,612.58,612.159,665.914,677.87,665.914,652.45,694.252,688.89,677.87,688.89,688.89,697.992,688.89,688.487,618.028,623.049,618.028,612.159,612.159,636.255,652.45,636.255,649.935,644.733,636.255,644.733,697.992,703.057,323.248,324.542,324.542,325.543,325.543,325.507,695.774,692.407,692.407,687.749,687.749,684.511,425.007,427.757,443.461,437.195,437.195,427.757,412.032,427.757,412.032,397.849,434.286,427.757,434.286,440.571,368.564,363.476,328.028,326.567,465.332,461.927,465.332,471.314,471.314,474.961,471.314,473.953,473.953,474.978,529.686,523.504,523.504,513.905,513.905,501.394,502.422,501.394,501.394,474.961,501.394,498.943,501.394,492.906,501.394,513.118,501.394,514.881,492.906,487.838,474.961,449.16,474.961,470.615,449.16,443.398,449.16,441.804,449.16,448.537,449.16,442.746,449.16,448.007,449.16,432.417,513.118,514.785,513.118,522.18,527.25,522.18,502.006,505.086,502.006,509.271,502.006,504.425,502.006,499.212,502.006,527.551,499.212,498.285,509.271,512.773,514.881,527.551,432.417,424.373,518.193,512.14,518.193,518.215,508.675,512.14,499.958,479.19,499.958,502.626,499.958,492.531,473.043,475.111,463.468,475.187,463.468,466.759,463.468,459.526,463.468,453.695,492.531,483.491,492.531,488.831,453.695,446.284,475.187,472.421,475.187,483.491,475.187,475.591,446.284,440.571,479.19,475.111,479.19,471.144,479.19,465.36,471.144,466.712,471.144,469.182,442.264,447.296,447.296,455.089,455.089,465.36,460.472,465.36,532.778,543.585,258.215,263.236,263.615,263.236,263.236,267.594,267.594,272.417,105.715,110.631,750.0,745.613,617.063,631.943,543.585,553.18,561.868,553.18,561.868,569.799,574.879,569.799,574.793,569.799,568.838,569.799,266.818,268.733,270.64,268.733,268.733,267.122,268.733,271.018,319.737,313.151,319.737,323.755,304.02,313.151,304.02,292.74,292.74,298.37,292.74,277.571,323.755,325.507,229.128,230.914,482.569,478.83,302.228,298.37,179.316,175.088,175.088,167.936,167.936,159.645,159.645,145.618,38.336,44.838,44.838,56.87,54.21,59.9,53.883,56.87,59.9,65.447,59.9,56.87,59.9,56.315,70.291,56.87,70.291,84.876,65.447,72.318,80.335,72.318,80.335,87.647,80.335,76.175,98.89,94.997,92.433,93.52,93.52,94.997,79.338,84.907,84.907,94.997,87.647,94.997,92.213,94.997,129.611,112.861,129.611,133.578,129.611,141.71,129.611,133.941,148.214,141.71,114.989,112.861,112.861,94.997,112.861,117.1,468.788,468.761,468.788,472.786,468.788,472.333,468.908,468.761,472.786,475.591,472.786,474.976,472.786,478.707,84.876,99.358,84.876,89.318,84.876,81.931,133.182,133.564,129.547,127.081,127.081,113.421,127.081,137.563,104.775,110.631,99.358,113.421,137.563,145.618,133.564,145.618,133.564,121.303,121.303,110.631,525.085,529.406,525.085,526.743,525.085,521.437,525.085,522.927,522.927,524.606,522.927,520.827,522.927,518.001,516.168,519.469,519.469,520.827,519.469,518.261,518.261,520.503,518.261,515.405,745.613,738.339,541.893,547.032,547.032,547.311,547.032,553.203,563.476,562.525,563.476,553.203,563.476,574.643,562.525,562.53,595.25,585.08,585.08,574.643,553.203,555.388,193.074,187.563,328.323,341.164,328.323,315.504,341.164,354.545,354.545,358.869,354.545,370.537,363.126,358.869,381.012,383.146,397.849,384.145,384.145,370.537,384.145,383.146,272.417,277.571,315.504,301.822,270.637,267.841,185.192,190.686,190.686,201.53,267.841,277.571,267.841,258.426,262.629,258.426,286.984,271.018,286.984,301.822,271.018,258.426,236.24,238.732,204.144,201.53,196.491,201.53,198.254,201.53,186.427,191.441,191.441,201.53,219.758,201.53,219.758,238.732,258.426,238.732,267.122,265.026],
+z: [375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0,375.0],
+},
+};
+
+    </script>
+    
+    <script>
+
+      //status on whether to show or not the background canvas
+      let FullMolinBkg = false;
+
+      let smilesDrawer = new SmilesDrawer.Drawer({
+        width: 250 / window.devicePixelRatio,
+        height: 250 / window.devicePixelRatio,
+        experimental: true
+      });
+
+      class Faerun {
+        constructor() {
+          this.body = document.getElementsByTagName('body')[0];
+
+          this.selectedItems = [];
+          this.selectedIndicators = [];
+          this.selectedCurrent = [];
+          this.scatterMeta = [{"categorical": [false, true, true], "fog_intensity": 0.0, "has_legend": true, "interactive": true, "is_range": [true, false, false], "label_index": [0, 0, 0], "legend": [[[[0.0, 0.0, 0.5, 1.0], "-2.825"], [[0.0, 0.0, 0.535650623885918, 1.0], "-2.642"], [[0.0, 0.0, 0.589126559714795, 1.0], "-2.813"], [[0.0, 0.0, 0.6247771836007131, 1.0], "-1.079"], [[0.0, 0.0, 0.6782531194295901, 1.0], "-3.078"], [[0.0, 0.0, 0.7317290552584672, 1.0], "-2.748"], [[0.0, 0.0, 0.7673796791443852, 1.0], "-1.892"], [[0.0, 0.0, 0.8208556149732622, 1.0], "-1.613"], [[0.0, 0.0, 0.8565062388591802, 1.0], "-1.519"], [[0.0, 0.0, 0.9099821746880573, 1.0], "-0.954"], [[0.0, 0.0, 0.9634581105169343, 1.0], "-1.973"], [[0.0, 0.0, 0.9991087344028523, 1.0], "-3.8"], [[0.0, 0.0, 1.0, 1.0], "-3.824"], [[0.0, 0.01764705882352946, 1.0, 1.0], "-2.276"], [[0.0, 0.06470588235294117, 1.0, 1.0], "-1.748"], [[0.0, 0.11176470588235299, 1.0, 1.0], "-2.942"], [[0.0, 0.14313725490196083, 1.0, 1.0], "-1.839"], [[0.0, 0.19019607843137254, 1.0, 1.0], "-1.9"], [[0.0, 0.23725490196078436, 1.0, 1.0], "-2.793"], [[0.0, 0.2686274509803922, 1.0, 1.0], "-3.425"], [[0.0, 0.3156862745098039, 1.0, 1.0], "-0.903"], [[0.0, 0.34705882352941175, 1.0, 1.0], "-0.845"], [[0.0, 0.3941176470588236, 1.0, 1.0], "-1.934"], [[0.0, 0.4411764705882353, 1.0, 1.0], "-2.468"], [[0.0, 0.4725490196078431, 1.0, 1.0], "-3.526"], [[0.0, 0.5196078431372548, 1.0, 1.0], "-3.184"], [[0.0, 0.5509803921568628, 1.0, 1.0], "-3.33"], [[0.0, 0.5980392156862745, 1.0, 1.0], "-0.477"], [[0.0, 0.6450980392156862, 1.0, 1.0], "-1.602"], [[0.0, 0.6764705882352946, 1.0, 1.0], "-1.531"], [[0.0, 0.7235294117647059, 1.0, 1.0], "-1.23"], [[0.0, 0.7549019607843137, 1.0, 1.0], "-3.178"], [[0.0, 0.8019607843137255, 1.0, 1.0], "-0.799"], [[0.0, 0.8490196078431372, 1.0, 1.0], "-1.732"], [[0.0, 0.8803921568627451, 0.9835547122074638, 1.0], "-1.362"], [[0.022137887413030133, 0.9274509803921573, 0.9456040480708411, 1.0], "-1.531"], [[0.06008855154965209, 0.9745098039215686, 0.907653383934219, 1.0], "-1.23"], [[0.08538899430740032, 1.0, 0.8823529411764708, 1.0], "-1.771"], [[0.12333965844402273, 1.0, 0.8444022770398484, 1.0], "-2.807"], [[0.14864010120177096, 1.0, 0.8191018342821001, 1.0], "-2.666"], [[0.18659076533839336, 1.0, 0.7811511701454777, 1.0], "-3.0"], [[0.2245414294750161, 1.0, 0.743200506008855, 1.0], "-1.699"], [[0.249841872232764, 1.0, 0.717900063251107, 1.0], "-1.531"], [[0.2877925363693864, 1.0, 0.6799493991144846, 1.0], "-0.462"], [[0.31309297912713463, 1.0, 0.6546489563567364, 1.0], "-0.633"], [[0.35104364326375703, 1.0, 0.616698292220114, 1.0], "-0.519"], [[0.38899430740037944, 1.0, 0.5787476280834916, 1.0], "-2.041"], [[0.41429475015812767, 1.0, 0.5534471853257433, 1.0], "-1.0"], [[0.45224541429475007, 1.0, 0.5154965211891209, 1.0], "0.301"], [[0.4775458570524983, 1.0, 0.49019607843137264, 1.0], "-1.38"], [[0.5154965211891207, 1.0, 0.45224541429475024, 1.0], "-0.82"], [[0.5534471853257432, 1.0, 0.41429475015812767, 1.0], "-2.386"], [[0.5787476280834913, 1.0, 0.3889943074003796, 1.0], "-0.362"], [[0.6166982922201137, 1.0, 0.3510436432637572, 1.0], "-1.556"], [[0.6546489563567364, 1.0, 0.31309297912713463, 1.0], "-1.23"], [[0.6799493991144845, 1.0, 0.2877925363693865, 1.0], "-1.23"], [[0.7179000632511068, 1.0, 0.24984187223276413, 1.0], "-3.613"], [[0.7432005060088551, 1.0, 0.22454142947501587, 1.0], "-2.576"], [[0.7811511701454774, 1.0, 0.18659076533839347, 1.0], "-1.255"], [[0.8191018342820998, 1.0, 0.14864010120177107, 1.0], "-0.477"], [[0.844402277039848, 1.0, 0.1233396584440228, 1.0], "-3.114"], [[0.8823529411764705, 1.0, 0.08538899430740039, 1.0], "-1.0"], [[0.9076533839342187, 1.0, 0.06008855154965213, 1.0], "-1.699"], [[0.9456040480708411, 0.9883805374001453, 0.022137887413029734, 1.0], "-3.114"], [[0.9835547122074635, 0.9448075526506899, 0.0, 1.0], "-2.839"], [[1.0, 0.9157588961510531, 0.0, 1.0], "-3.491"], [[1.0, 0.8721859114015977, 0.0, 1.0], "0.155"], [[1.0, 0.8286129266521424, 0.0, 1.0], "-0.785"], [[1.0, 0.7995642701525055, 0.0, 1.0], "-1.017"], [[1.0, 0.7559912854030502, 0.0, 1.0], "-3.502"], [[1.0, 0.7269426289034133, 0.0, 1.0], "-1.255"], [[1.0, 0.683369644153958, 0.0, 1.0], "-3.119"], [[1.0, 0.6397966594045026, 0.0, 1.0], "-1.653"], [[1.0, 0.6107480029048657, 0.0, 1.0], "-2.508"], [[1.0, 0.5671750181554104, 0.0, 1.0], "-1.146"], [[1.0, 0.5381263616557735, 0.0, 1.0], "-1.362"], [[1.0, 0.49455337690631795, 0.0, 1.0], "-1.602"], [[1.0, 0.4509803921568628, 0.0, 1.0], "-0.954"], [[1.0, 0.4219317356572259, 0.0, 1.0], "-2.69"], [[1.0, 0.3783587509077705, 0.0, 1.0], "-1.462"], [[1.0, 0.3493100944081337, 0.0, 1.0], "-3.0"], [[1.0, 0.30573710965867834, 0.0, 1.0], "-2.568"], [[1.0, 0.2621641249092229, 0.0, 1.0], "-3.4"], [[1.0, 0.23311546840958614, 0.0, 1.0], "-3.362"], [[1.0, 0.18954248366013082, 0.0, 1.0], "-3.146"], [[1.0, 0.14596949891067537, 0.0, 1.0], "-4.041"], [[1.0, 0.11692084241103859, 0.0, 1.0], "-3.398"], [[0.9991087344028521, 0.07334785766158326, 0.0, 1.0], "-3.613"], [[0.9634581105169341, 0.04429920116194637, 0.0, 1.0], "-2.767"], [[0.9099821746880571, 0.0007262164124910357, 0.0, 1.0], "-3.609"], [[0.8565062388591801, 0.0, 0.0, 1.0], "-2.843"], [[0.820855614973262, 0.0, 0.0, 1.0], "-1.699"], [[0.767379679144385, 0.0, 0.0, 1.0], "-1.0"], [[0.731729055258467, 0.0, 0.0, 1.0], "0.398"], [[0.67825311942959, 0.0, 0.0, 1.0], "-1.079"], [[0.624777183600713, 0.0, 0.0, 1.0], "-0.58"], [[0.589126559714795, 0.0, 0.0, 1.0], "-2.582"], [[0.535650623885918, 0.0, 0.0, 1.0], "-2.857"], [[0.5, 0.0, 0.0, 1.0], "-1.934"]], [[[1.0, 0.4980392156862745, 0.054901960784313725, 1.0], "Yes"], [[0.12156862745098039, 0.4666666666666667, 0.7058823529411765, 1.0], "No"]], [[[0.21568627450980393, 0.49411764705882355, 0.7215686274509804, 1.0], "train"], [[0.8941176470588236, 0.10196078431372549, 0.10980392156862745, 1.0], "test"]]], "legend_title": ["CHEMBL1871_Ki", "CHEMBL1871_Ki", "CHEMBL1871_Ki"], "mapping": {"c": "c", "cs": "cs", "knn": "knn", "labels": "labels", "s": "s", "x": "x", "y": "y", "z": "z"}, "max_c": [0.602, 1.0, 1.0], "max_legend_label": ["0.602", "1.00", "1.00"], "max_point_size": 100.0, "min_c": [-4.748, 0.0, 0.0], "min_legend_label": ["-4.748", "0.00", "0.00"], "name": "CHEMBL1871_Ki", "ondblclick": [null, null, null], "point_scale": 10, "selected_labels": [null, null, null], "series_title": ["pActivity", "cliff_mol", "split"], "shader": "smoothCircle", "title_index": [0, 0, 0]}];
+          this.treeMeta = [{"color": "#666666", "fog_intensity": 0.0, "mapping": {"c": "c", "from": "from", "to": "to", "x": "x", "y": "y", "z": "z"}, "name": "CHEMBL1871_Ki_tree", "point_helper": "CHEMBL1871_Ki"}];
+          this.seriesState = {};
+          this.el = {};
+
+          this.currentPoint = null;
+
+          this.lore = null;
+          this.clearColorHex = '#111111';
+          this.clearColor = null;
+          this.view = 'front';
+          this.antiAliasing = true;
+          this.alphaBlending = false;
+
+          this.treeHelpers = [];
+          this.pointHelpers = [];
+          this.octreeHelpers = [];
+          this.coordinatesHelper = null;
+
+          this.ohIndexToPhName = [];
+          this.ohIndexToPhIndex = [];
+          this.phIndexMap = {};
+          this.ohIndexMap = {};
+
+          this.min = [Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE];
+          this.max = [-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE];
+          this.maxRadius = -Number.MAX_VALUE;
+
+          this.coords = {
+            show: false,
+            grid: false,
+            ticks: true,
+            tickCount: 10,
+            tickLength: 2.0,
+            color: '#888888',
+            box: false,
+            offset: 5.0
+          };
+
+          this.legend = {
+            show: true,
+            title: 'Legend'
+          };
+
+          this.el = Faerun.bindElements();
+
+          this.scatterMeta.forEach(s => {
+            this.seriesState[s.name] = 0;
+          });
+
+          this.clearColor = Lore.Core.Color.fromHex(this.clearColorHex);
+          this.alphaBlending = (this.view === 'free' ? false : true) || this.alphaBlending;
+
+          this.initLore();
+          this.initTreeHelpers();
+          this.initPointHelpers();
+          this.initCoords();
+          this.initAxes();
+          this.initView();
+          this.initEvents();
+          this.renderLegend();
+        }
+
+        initLore() {
+          this.lore = Lore.init('lore', {
+            antialiasing: this.antiAliasing,
+            clearColor: this.clearColorHex,
+            alphaBlending: this.alphaBlending,
+            preserveDrawingBuffer: true
+          });
+        }
+
+        initTreeHelpers() {
+          this.treeMeta.forEach(t => {
+            let th = new Lore.Helpers.TreeHelper(this.lore, t.name, 'tree');
+            th.setXYZHexS(data[t.name].x, data[t.name].y, data[t.name].z, t.color);
+            th.setFog([this.clearColor.components[0], this.clearColor.components[1], 
+                       this.clearColor.components[2], this.clearColor.components[3]],
+                      t.fog_intensity);
+            this.treeHelpers.push(th);
+          });
+        }
+
+        initPointHelpers() {
+          this.scatterMeta.forEach(s => {           
+            let ph = new Lore.Helpers.PointHelper(
+              this.lore, s.name, s.shader, { maxPointSize: s.max_point_size }
+            );
+
+            ph.setXYZRGBS(data[s.name].x, data[s.name].y, data[s.name].z, 
+                          data[s.name]['colors'][0].r, data[s.name]['colors'][0].g, 
+                          data[s.name]['colors'][0].b, data[s.name]['s'] ? data[s.name]['s'][0] : 1.0);
+
+            ph.setPointScale(s.point_scale);
+            ph.setFog([this.clearColor.components[0], this.clearColor.components[1],
+                       this.clearColor.components[2], this.clearColor.components[3]],
+                      s.fog_intensity)
+
+            this.phIndexMap[s.name] = this.pointHelpers.length;
+            this.pointHelpers.push(ph);
+
+            this.min[0] = Faerun.getMin(data[s.name].x, this.min[0]);
+            this.min[1] = Faerun.getMin(data[s.name].y, this.min[1]);
+            this.min[2] = Faerun.getMin(data[s.name].z, this.min[2]);
+            this.max[0] = Faerun.getMax(data[s.name].x, this.max[0]);
+            this.max[1] = Faerun.getMax(data[s.name].y, this.max[1]);
+            this.max[2] = Faerun.getMax(data[s.name].z, this.max[2]);
+            this.maxRadius = ph.getMaxRadius();
+    
+            if (s.interactive && data[s.name].labels) {
+              this.octreeHelpers.push(
+                new Lore.Helpers.OctreeHelper(this.lore, 'Octree_' + s.name, 'tree', ph)
+              );
+
+              this.ohIndexMap[s.name] = this.octreeHelpers.length - 1;
+              this.ohIndexToPhName.push(s.name);
+              this.ohIndexToPhIndex.push(this.phIndexMap[s.name]);
+            }
+          });
+        }
+
+        initCoords() {
+          if (!this.coords.show) return;
+
+          let min = [0, 0, 0];
+          let max = [0, 0, 0];
+
+          for (var i = 0; i < 3; i++) {
+            min[i] = this.min[i] - this.coords.offset;
+            max[i] = this.max[i] + this.coords.offset;
+          }
+
+          this.coordinatesHelper = new Lore.Helpers.CoordinatesHelper(this.lore, 'Coordinates', 'coordinates', {
+            position: new Lore.Math.Vector3f(min[0], min[1], min[2]),
+            axis: {
+              x: {
+                length: max[0] - min[0],
+                color: Lore.Core.Color.fromHex(this.coords.color)
+              },
+              y: {
+                length: max[1] - min[1],
+                color: Lore.Core.Color.fromHex(this.coords.color)
+              },
+              z: {
+                length: max[2] - min[2],
+                color: Lore.Core.Color.fromHex(this.coords.color)
+              }
+            },
+            ticks: {
+              enabled: this.coords.ticks,
+              x: {
+                length: this.coords.tickLength,
+                color: Lore.Core.Color.fromHex(this.coords.color),
+                count: this.coords.tickCount
+              },
+              y: {
+                length: this.coords.tickLength,
+                color: Lore.Core.Color.fromHex(this.coords.color),
+                count: this.coords.tickCount
+              },
+              z: {
+                length: this.coords.tickLength,
+                color: Lore.Core.Color.fromHex(this.coords.color),
+                count: this.coords.tickCount
+              }
+            },
+            box: {
+              enabled: this.coords.box,
+              x: {
+                color: Lore.Core.Color.fromHex(this.coords.color)
+              },
+              y: {
+                color: Lore.Core.Color.fromHex(this.coords.color)
+              },
+              z: {
+                color: Lore.Core.Color.fromHex(this.coords.color)
+              }
+            }
+          });
+        }
+
+        initAxes() {
+          // Wait for DOM to get ready
+          setTimeout(() => {
+            this.updateTitle(true);
+            this.updateXAxis(true);
+            this.updateYAxis(true);
+          }, 500);
+        }
+
+        initView() {
+          let center = new Lore.Math.Vector3f(
+              (this.max[0] + this.min[0]) / 2.0, 
+              (this.max[1] + this.min[1]) / 2.0, 
+              (this.max[2] + this.min[2]) / 2.0
+            );
+          this.lore.controls.setLookAt(center);
+          this.lore.controls.setRadius(this.maxRadius + 100);
+          this.lore.controls.setView(0.9, -0.5)
+          this.lore.controls.setViewByName(this.view);
+        }
+
+        initEvents() {
+          this.lore.controls.addEventListener('updated', () => {
+            // Update the position / content of the annotations every time
+            // the view changes
+            this.updateTitle();
+            this.updateYAxis();
+            this.updateXAxis();
+            this.updateSelectedIndicators();
+          });
+
+          Lore.Helpers.OctreeHelper.joinHoveredChanged(this.octreeHelpers, e => {
+            let phName = this.ohIndexToPhName[e.source];
+            if (e.e && data[phName].labels) {
+              let fullLabel = data[phName].labels[e.e.index];
+              let labelIndex = this.scatterMeta[this.ohIndexToPhIndex[e.source]]
+                                  .label_index[this.seriesState[phName]];
+              let titleIndex = this.scatterMeta[this.ohIndexToPhIndex[e.source]]
+                                  .title_index[this.seriesState[phName]];
+
+              let rgbColor = this.pointHelpers[e.source].getColor(e.e.index);
+              let hexColor = Lore.Core.Color.rgbToHex(rgbColor[0], rgbColor[1], rgbColor[2]);
+
+              this.currentPoint = {
+                index: e.e.index,
+                fullLabel: fullLabel.split('__'),
+                source: phName,
+                label: fullLabel.split('__')[labelIndex],
+                color: hexColor,
+                labelIndex: labelIndex,
+                titleIndex: titleIndex
+              }
+              
+              if (FullMolinBkg == true) {
+
+                document.getElementById("overlay-structure-container").style.visibility = "visible";
+
+                var overlayStruc_Width = document.getElementById("overlay-structure-container").offsetWidth
+                var overlayStruc_Height = document.getElementById("overlay-structure-container").offsetHeight
+
+                if (overlayStruc_Width > overlayStruc_Height) {overlayStruc_Width = overlayStruc_Height}
+
+                smilesDrawer = new SmilesDrawer.Drawer({
+                  width: overlayStruc_Width / window.devicePixelRatio,
+                  height: overlayStruc_Width / window.devicePixelRatio,
+                  bondThickness: 1.4,
+                  experimental: true
+                });
+
+                this.setTipContent();
+
+
+                smilesDrawer = new SmilesDrawer.Drawer({
+                  width: 250 / window.devicePixelRatio,
+                  height: 250 / window.devicePixelRatio,
+                  bondThickness: 1.4,
+                  experimental: true
+                });
+              } else {
+
+                document.getElementById("overlay-structure-container").style.visibility = "hidden";
+                this.setTipContent__();
+
+                this.el.tip.classList.add('show');
+
+                let pointSize = this.pointHelpers[e.source].getPointSize() / window.devicePixelRatio;
+                let x = e.e.screenPosition[0];
+                let y = e.e.screenPosition[1];
+
+                this.el.hoverIndicator.style.width = pointSize + 'px';
+                this.el.hoverIndicator.style.height = pointSize + 'px';
+                this.el.hoverIndicator.style.left = (x - pointSize / 2.0 - 1) + 'px';
+                this.el.hoverIndicator.style.top = (y - pointSize / 2.0 - 1) + 'px';
+
+                this.el.hoverIndicator.classList.add('show');
+                }
+
+            } else {
+              this.currentPoint = null;
+              this.el.tip.classList.remove('show');
+              this.el.hoverIndicator.classList.remove('show');
+            }
+          });
+
+          Lore.Helpers.OctreeHelper.joinSelectedChanged(this.octreeHelpers, items => {
+            this.selectedItems = items;
+            this.updateSelected();
+          });
+
+          Lore.Helpers.OctreeHelper.joinReselected(this.octreeHelpers, item => {
+            this.updateSelected(
+              this.getSelectedIndex(item[0].source, item[0].item.e.index)
+            );
+          });
+
+          // Event listeners
+          this.el.selectedPrev.addEventListener('click', e => {
+            e.preventDefault();
+            this.updateSelected(this.selectedCurrent - 1);
+            return false;
+          });
+
+          this.el.selectedNext.addEventListener('click', e => {
+            e.preventDefault();
+            this.updateSelected(this.selectedCurrent + 1);
+            return false;
+          });
+
+          this.el.selectedRemove.addEventListener('click', e => {
+            e.preventDefault();
+            let item = this.selectedItems[this.selectedCurrent]
+            this.octreeHelpers[item.source].removeSelected(item.index);
+            return false;
+          });
+
+          document.addEventListener('dblclick', e => {
+            if (this.currentPoint) {
+              var index = this.currentPoint.index;
+              var labels = this.currentPoint.label.split('__');
+              var source = this.currentPoint.source;
+              eval(this.scatterMeta[this.phIndexMap[source]].ondblclick[this.seriesState[source]]);
+            }
+          });
+
+          document.addEventListener('mousemove', e => {
+            if (FullMolinBkg == false) {
+
+              document.getElementById("tip").style.visibility = "visible";
+
+              let x = e.clientX;
+              let y = e.clientY;
+
+              if (x > window.innerWidth - this.el.tip.offsetWidth - 20) {
+                x -= this.el.tip.offsetWidth;
+              } else {
+                x += 10;
+              }
+
+              if (y > window.innerHeight - this.el.tip.offsetHeight - 20) {
+                y -= this.el.tip.offsetHeight;
+              } else {
+                y += 10;
+              }
+
+              if (this.el.tip) {
+                this.el.tip.style.top = y + 'px';
+                this.el.tip.style.left = x + 'px';
+              }
+            } else {
+              
+              document.getElementById("tip").style.visibility = "hidden";
+
+            }
+          });
+
+          this.el.selectedToggle.addEventListener('click', e => {
+            this.el.selectedContainer.classList.toggle('hide');
+            if (this.el.selectedContainer.classList.contains('hide'))
+              this.el.selectedToggle.innerHTML = '<i class="fas fa-toggle-off"></i>';
+            else
+              this.el.selectedToggle.innerHTML = '<i class="fas fa-toggle-on"></i>';
+            
+            e.preventDefault();
+            return false;
+          });
+
+          this.el.showControls.addEventListener('click', e => {
+            this.el.moreControls.classList.toggle('hide');
+            e.preventDefault();
+            return false;
+          });
+
+          this.el.search.addEventListener('click', e => {
+            let searchTerm = prompt('Please enter a search term:', '');
+            const results = this.search(searchTerm);
+
+            for (const [name, indices] of Object.entries(results)) {
+              if (!name in this.ohIndexMap) return;
+              indices.forEach(index => {
+                this.octreeHelpers[this.ohIndexMap[name]].addSelected(index);
+              });
+            }
+            
+            e.preventDefault();
+            return false;
+          });
+
+          window.addEventListener('keydown', e => {
+            if ((e.keyCode == 114) || (e.ctrlKey && e.keyCode == 70)) {
+              this.search();
+              e.preventDefault();
+              return false;
+            }
+          });
+
+          this.el.export.addEventListener('click', e => {
+            e.preventDefault();
+
+            let canvas = document.getElementById('lore');
+            let zoom = this.lore.controls.getZoom();
+
+            canvas.style.width = (canvas.width * 2) + 'px';
+            canvas.style.height = (canvas.height * 2) + 'px';
+            this.lore.controls.setZoom(zoom * 2);
+
+            setTimeout(() => {
+              let blob = this.lore.canvas.toBlob(blob => {
+                let a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.setAttribute('download', 'export.png');
+                a.click();
+                
+                setTimeout(() => {
+                  canvas.style.width = '100%';
+                  canvas.style.height = '100%';
+                  lore.controls.setZoom(zoom);
+                }, 2000);
+              });
+            }, 2000);
+          });
+
+          this.el.download.addEventListener('click', e => {
+            e.preventDefault();
+
+            let text = ''
+            this.selectedItems.forEach(item => {
+              let phIndex = this.ohIndexToPhIndex[item.source];
+              let meta = this.scatterMeta[phIndex];
+              let phName = this.ohIndexToPhName[item.source];
+              let seriesState = this.seriesState[phName];
+
+              let fullLabel = data[phName].labels[item.item.index].split('__');
+
+              let labelIndex = meta.label_index[seriesState];
+              let titleIndex = meta.title_index[seriesState];
+              let selectedLabels = meta.selected_labels[seriesState];
+
+              fullLabel.forEach((l, i) => {
+                text += l + ';'
+              });
+              text = text.slice(0, -1); 
+              text += '\n';
+            });
+
+            var a = document.createElement('a');
+            a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            a.setAttribute('download', 'faerun_list.csv');
+
+            a.style.display = 'none';
+            document.body.appendChild(a);
+
+            a.click();
+
+            document.body.removeChild(a);
+
+            return false;
+          });
+
+          this.el.largepreview.addEventListener('click', e => {
+            
+            //Switch display mode:
+            if (FullMolinBkg == false) {
+              FullMolinBkg = true;
+            } else {
+              FullMolinBkg = false;
+              //HIDE BIG CANVAS IN BACKGROUND:
+              document.getElementById("overlay-structure-container").style.visibility = "hidden";
+            }
+          });
+        }
+
+        setTipContent__() {
+          SmilesDrawer.parse(this.currentPoint.label, tree => {
+            smilesDrawer.draw(tree, 'smiles-canvas', 'light', false);
+            let tipImage = Faerun.createElement('img');
+            tipImage.src = this.el.smilesCanvas.toDataURL();
+            this.el.tipText.innerHTML = '';
+            if (this.currentPoint.titleIndex !== this.currentPoint.labelIndex)
+              this.el.tipText.innerHTML = `${this.currentPoint.fullLabel[this.currentPoint.titleIndex]}<br />`;
+            this.el.tipText.appendChild(tipImage);
+            this.el.tip.style.borderColor = this.currentPoint.color;
+          }, err => { console.log(err); });
+        }
+
+        setTipContent() {
+          SmilesDrawer.parse(this.currentPoint.label, tree => {
+            smilesDrawer.draw(tree, 'overlay-structure', 'dark', false);
+            document.getElementById("tip").style.visibility = "hidden";
+            //let tipImage = Faerun.createElement('img');
+            //tipImage.src = this.el.smilesCanvas.toDataURL();
+            //this.el.tipText.innerHTML = '';
+            //if (this.currentPoint.titleIndex !== this.currentPoint.labelIndex)
+            //  this.el.tipText.innerHTML = `${this.currentPoint.fullLabel[this.currentPoint.titleIndex]}<br />`;
+           // this.el.tipText.appendChild(tipImage);
+            //this.el.tip.style.borderColor = this.currentPoint.color;
+          }, err => { console.log(err); });
+        }
+
+        setSelectedContent(fullLabel, labelIndex, selectedLabels, img) {
+          this.el.selectedContainer.innerHTML = '';
+          if (img)
+            this.el.selectedContainer.appendChild(img);
+
+          fullLabel.forEach((l, i) => {
+            if (i === labelIndex) return;
+            if (selectedLabels && selectedLabels[i]) {
+              this.el.selectedContainer.appendChild(
+                Faerun.createElement('div', { classes: 'label', content: selectedLabels[i] })
+              );
+            }
+            this.el.selectedContainer.appendChild(
+              Faerun.createElement('div', { classes: 'content', content: l })
+            );
+          });
+
+          // Update the indicator
+          this.updateSelectedIndicators();
+        }
+
+        renderLegend() {
+          if (!this.legend.show) return;
+
+          
+          let legend = document.getElementById('legend');
+          
+          if (legend) this.body.removeChild(legend);
+
+          legend = Faerun.createElement('div', { id: 'legend' });
+          this.body.appendChild(legend)
+          
+          if (this.legend.title && this.legend.title !== '')
+            legend.appendChild(Faerun.createElement('h2', { content: 'Legend' }));
+          
+          let container = Faerun.createElement('div', { classes: 'container' });
+          legend.appendChild(container);
+
+          this.scatterMeta.forEach(s => {
+            let index = this.seriesState[s.name];
+            if (s.has_legend) {
+              let legendSection = []
+              if (!s.is_range[index]) {
+                s.legend[index].forEach(v => {
+                  legendSection.push(Faerun.createElement('div', { classes: 'legend-element' }, [
+                    Faerun.createColorBox(v[0]),
+                    Faerun.createElement('div', { classes: 'legend-label', content: v[1] }),
+                  ]))
+                })
+              } else {
+                legendSection.push(Faerun.createElement('div', { classes: 'legend-element-range' }, [
+                  ...Faerun.createColorScale(s.legend[index]),
+                  Faerun.createElement('div', { 
+                    classes: 'legend-label max', 
+                    content: s.max_legend_label[index] 
+                  }),
+                  Faerun.createElement('div', {
+                    classes: 'legend-label min',
+                    content: s.min_legend_label[index] 
+                  })
+                ]))
+              }
+
+              let series = [];
+              for (var i = 0; i < s.series_title.length; i++) {
+                series.push(
+                  Faerun.createElement('option', { 
+                    value: i, 
+                    content: s.series_title[i], 
+                    selected: i === index
+                  })
+                );
+              }
+
+
+              let sectionHeader = Faerun.createElement(
+                'h3', { content: s.legend_title[index] }
+              );
+              sectionHeader.addEventListener('click', e => {
+                this.toggleLegendSection(s.name);
+              });
+
+              let seriesSelector = Faerun.createElement(
+                'select', 
+                { 
+                  id: `select-${s.name}`, 
+                  classes: 'series-selector',
+                  'data-name': s.name,
+                  hidden: s.series_title.length < 2,
+                }, 
+                [ ...series ]
+              );
+              seriesSelector.addEventListener('change', e => {
+                let value = document.getElementById(`select-${s.name}`).value;
+                this.changeSeries(value, s.name);
+              });
+
+
+              container.appendChild(
+                Faerun.createElement(
+                  'div', { id: `legend-${s.name}`, 
+                  classes: 'legend-section', 
+                  'data-name': `${s.name}` },
+                  [ sectionHeader, seriesSelector, ...legendSection ]
+                )
+              );
+            }
+          });
+        }
+
+        toggleLegendSection(name) {
+          let section = document.getElementById('legend-' + name);
+          let geometry = this.pointHelpers[this.phIndexMap[name]].geometry;
+          let isVisible = geometry.isVisible;
+
+          if (isVisible) {
+            geometry.hide();
+            section.style.opacity = 0.5;
+          } else {
+            geometry.show();
+            section.style.opacity = 1.0;
+          }
+        }
+
+        getSelectedIndex(source, index) {
+          let selectedIndex = null;
+          this.selectedItems.forEach((item, i) => {
+            if (item.source == source && item.item.index == index) {
+              selectedIndex = i;
+              return;
+            }
+          });
+          return selectedIndex;
+        }
+
+        updateSelected(current = -1) {
+          let n = this.selectedItems.length
+          // Hide the container if no items are selected
+          if (n === 0) {
+            this.el.selected.style.display = 'none';
+            return;
+          } else {
+            this.el.selected.style.display = 'block';
+          }
+
+          if (current < 0) current = n - 1;
+          if (current >= n) current = 0;
+          this.selectedCurrent = current;
+
+          let item = this.selectedItems[current];
+
+          let phIndex = this.ohIndexToPhIndex[item.source];
+          let meta = this.scatterMeta[phIndex];
+          let phName = this.ohIndexToPhName[item.source];
+          let seriesState = this.seriesState[phName];
+
+          let fullLabel = data[phName].labels[item.item.index].split('__');
+
+          let labelIndex = meta.label_index[seriesState];
+          let titleIndex = meta.title_index[seriesState];
+          let selectedLabels = meta.selected_labels[seriesState];
+
+          SmilesDrawer.parse(fullLabel[labelIndex], tree => {
+            smilesDrawer.draw(tree, 'smiles-canvas', 'dark', false);
+            let img = Faerun.createElement('img');
+            img.src = this.el.smilesCanvas.toDataURL();
+            
+            this.el.selectedCurrent.innerHTML = current + 1;
+            this.el.selectedTotal.innerHTML = n;
+            this.el.selectedTitle.innerHTML = fullLabel[titleIndex];
+
+            this.setSelectedContent(fullLabel, labelIndex, selectedLabels, img);
+          }, err => { console.log(err); });
+
+          // Remove all indicators
+          this.selectedIndicators.forEach(indicator => {
+            indicator.element.parentElement.removeChild(indicator.element);
+          });
+          this.selectedIndicators.length = 0;
+
+          // Add the indicator for this object
+          let indicatorElement = Faerun.createElement(
+            'div', 
+            { classes: 'selected-indicator' },
+            [
+              Faerun.createElement('div', { classes: 'crosshair-x' }),
+              Faerun.createElement('div', { classes: 'crosshair-y' })
+            ]
+          );
+
+          this.body.appendChild(indicatorElement);
+          this.selectedIndicators.push({
+            element: indicatorElement,
+            index: item.item.index,
+            ohIndex: item.source,
+            phIndex: phIndex
+          });
+          this.updateSelectedIndicators();
+        }
+
+        updateSelectedIndicators() {
+          this.selectedIndicators.forEach(indicator => {
+            let pointSize = this.pointHelpers[indicator.phIndex].getPointSize();
+            let screenPosition = this.octreeHelpers[indicator.ohIndex]
+                                     .getScreenPosition(indicator.index);
+            
+            // Make the crosshairs larger than the point
+            pointSize = Faerun.getMax([pointSize / window.devicePixelRatio, 10 / window.devicePixelRatio]);
+            pointSize *= 1.25;
+            let halfPointSize = pointSize / 2.0;
+            indicator.element.style.left = (screenPosition[0] - halfPointSize) + 'px';
+            indicator.element.style.top = (screenPosition[1] - halfPointSize) + 'px';
+            indicator.element.style.width = pointSize + 'px';
+            indicator.element.style.height = pointSize + 'px';
+          });
+        }
+
+        updateTitle(first = false) {
+          if (this.el.title === undefined) return;
+
+          let bb = this.el.title.getBoundingClientRect();
+          let scenePosition = new Lore.Math.Vector3f(
+            (this.min[0] + this.min[0]) / 2.0, this.min[1], 
+            (this.min[2] + this.min[2]) / 2.0
+          );
+
+          let screenPosition = this.lore.controls.camera.sceneToScreen(scenePosition, this.lore);
+          
+          this.el.title.style.left = (screenPosition[0] - (bb.width / 2.0)) + 'px';
+          this.el.title.style.top = (screenPosition[1] - bb.height) + 'px';
+
+          if (first) this.el.title.classList.add('show');
+        }
+
+        updateXAxis(first = false) {
+          if (this.el.xAxis === undefined) return;
+          
+          let bb = this.el.xAxis.getBoundingClientRect();
+          let scenePosition = new Lore.Math.Vector3f(
+            (this.min[0] + this.min[0]) / 2.0, this.min[1], 
+            (this.min[2] + this.min[2]) / 2.0
+          );
+
+          let screenPosition = this.lore.controls.camera.sceneToScreen(scenePosition, this.lore);
+          
+          this.el.xAxis.style.left = (screenPosition[0] - (bb.width / 2.0)) + 'px';
+          this.el.xAxis.style.top = (screenPosition[1]) + 'px';
+
+          if (first) this.el.xAxis.classList.add('show');
+        }
+
+        updateYAxis(first = false) {
+          if (this.el.yAxis === undefined) return;
+            
+          let bb = this.el.yAxis.getBoundingClientRect();
+          let scenePosition = new Lore.Math.Vector3f(
+            this.min[0], (this.min[1] + this.min[1]) / 2.0, 
+            (this.min[2] + this.min[2]) / 2.0
+          );
+          
+          let screenPosition = this.lore.controls.camera.sceneToScreen(scenePosition, this.lore);
+          
+          this.el.yAxis.style.left = (screenPosition[0] - bb.height) + 'px';
+          this.el.yAxis.style.top = (screenPosition[1] - bb.width / 2.0) + 'px';
+
+          if (first) this.el.yAxis.classList.add('show');
+        }
+
+        changeSeries(value, name) {
+          value = parseInt(value);
+          this.seriesState[name] = value;
+          this.renderLegend();
+
+          this.pointHelpers[this.phIndexMap[name]].setRGBFromArrays(
+            data[name]['colors'][value].r, 
+            data[name]['colors'][value].g, 
+            data[name]['colors'][value].b
+          );
+
+          if (data[name]['s']) {
+            if (data[name]['s'][value]) {
+              this.pointHelpers[this.phIndexMap[name]].setSize(
+                data[name]['s'][value]
+              );
+            } else {
+              this.pointHelpers[this.phIndexMap[name]].setSize(1.0);
+            }
+          }
+        }
+
+        search(term) {
+          let results = {}
+          let re = new RegExp(term, 'i');
+
+          Object.keys(data).forEach(name => {
+            if (!('labels' in data[name])) return;
+            results[name] = []
+            data[name]['labels'].forEach((label, i) => {
+              if (re.test(label))
+                results[name].push(i)
+            });
+          });
+
+          return results;
+        }
+
+        static createColorBox(value) {
+          return Faerun.createElement(
+            'div', 
+            { 
+              classes: 'color-box', 
+              style: `background-color: rgba(${value[0] * 255}, ${value[1] * 255 }, ${value[2] * 255 }, ${value[3] });
+                      border-color: rgba(${value[0] * 255 }, ${value[1] * 255 }, ${value[2] * 255 }, ${value[3] })`
+            }
+          );
+        }
+
+        static createColorScale(values) {
+          let scale = [];
+
+          values.forEach(value => {
+            scale.push(
+              Faerun.createElement(
+                'div', 
+                { 
+                  classes: 'color-stripe', 
+                  style: `background-color: rgba(${value[0][0] * 255}, ${value[0][1] * 255}, ${value[0][2] * 255}, ${value[0][3]});
+                          border-color: rgba(${value[0][0] * 255}, ${value[0][1] * 255}, ${value[0][2] * 255}, ${value[0][3]})`,
+                  alt: value[1]
+                }
+              ),
+            )
+          });
+
+          return scale;
+        }
+        
+        static createElement(tag, values = {}, children = []) {
+          let element = document.createElement(tag);
+
+          for (const key of Object.keys(values)) {
+            if (key === 'classes')
+              element.classList.add(...values[key].split(' '));
+            else if (key === 'content')
+              element.innerHTML = values[key];
+            else if (key === 'hidden') {
+              if (values[key])
+                element.setAttribute('hidden', true);
+            }
+            else if (key === 'selected') {
+              if (values[key])
+                element.setAttribute('selected', true);
+            }
+            else
+              element.setAttribute(key, values[key]);
+          }
+
+          if (children) {
+            if (Array.isArray(children)) {
+              children.forEach(child => {
+                element.appendChild(child);
+              })
+            } else {
+              element.appendChild(children);
+            }
+          }
+
+          return element;
+        }
+
+        static bindElements() {
+          let result = {};
+          document.querySelectorAll('[data-bind]').forEach(e => {
+            result[e.getAttribute('data-bind')] = e;
+          });
+          return result;
+        }
+
+        static getMin(arr, other = Number.MAX_VALUE) {
+          let m = Number.MAX_VALUE;
+          for (var i = 0; i < arr.length; i++)
+              if (arr[i] < m) m = arr[i];
+          
+          if (m < other) return m;
+          return other;
+        }
+
+        static getMax(arr, other = -Number.MAX_VALUE) {
+          let m = -Number.MAX_VALUE;
+          for (var i = 0; i < arr.length; i++)
+              if (arr[i] > m) m = arr[i];
+          
+          if (m > other) return m;
+          return other;
+        }
+      }
+
+      let f = new Faerun();
+    </script>
+  </body>
+</html>
