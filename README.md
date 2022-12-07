@@ -14,12 +14,11 @@
 |  2 | [rip2](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/rip2.html)      | Serine/threonine-protein kinase RIPK2   | Kinase        |     46 | CHEMBL4266012; CHEMBL4130524                |
 |  3 | [pkci](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/pkci.html)      | Protein kinase C iota                   | Kinase        |     48 | CHEMBL4184321                               |
 |  4 | [phgdh](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/phgdh.html)     | D-3-phosphoglycerate dehydrogenase      | Other Enzyme  |     51 | CHEMBL4373702                               |
-|  5 | [klk5](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/klk5.html)      | Kallikrein 5                            | Protease      |     65 | CHEMBL4387717; CHEMBL4422656; CHEMBL4396973 |
-|  6 | [plk1](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/plk1.html)      | Serine/threonine-protein kinase PLK1    | Kinase        |     73 | CHEMBL4406868; CHEMBL4138231                |
-|  7 | [ido1](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/ido1.html)      | Indoleamine 2,3-dioxygenase             | Other Enzyme  |     78 | CHEMBL4364294                               |
-|  8 | [rxfp1](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/rxfp1.html)     | Relaxin receptor 1                      | GPCR          |    117 | CHEMBL3714716                               |
-|  9 | [braf](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/braf.html)      | Serine/threonine-protein kinase B-raf   | Kinase        |    128 | CHEMBL3638563                               |
-| 10 | [mglur2](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/mglur2.html)    | Metabotropic glutamate receptor 2       | GPCR          |    244 | CHEMBL3886984                               |
+|  5 | [plk1](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/plk1.html)      | Serine/threonine-protein kinase PLK1    | Kinase        |     73 | CHEMBL4406868; CHEMBL4138231                |
+|  6 | [ido1](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/ido1.html)      | Indoleamine 2,3-dioxygenase             | Other Enzyme  |     78 | CHEMBL4364294                               |
+|  7 | [rxfp1](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/rxfp1.html)     | Relaxin receptor 1                      | GPCR          |    117 | CHEMBL3714716                               |
+|  8 | [braf](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/braf.html)      | Serine/threonine-protein kinase B-raf   | Kinase        |    128 | CHEMBL3638563                               |
+| 9 | [mglur2](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/mglur2.html)    | Metabotropic glutamate receptor 2       | GPCR          |    244 | CHEMBL3886984                               |
 
 
 
