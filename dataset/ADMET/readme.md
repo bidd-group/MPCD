@@ -1,0 +1,2 @@
+## The benchmark datasets are from: https://github.com/RekerLab/DeepDelta/tree/main/Datasets/Benchmarks
+## ADMET Delta prediction: Fralish, Z., Chen, A., Skaluba, P., & Reker, D. (2023). DeepDelta: predicting ADMET improvements of molecular derivatives with deep learning. Journal of Cheminformatics, 15(1), 101
