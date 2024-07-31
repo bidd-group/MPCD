@@ -3,16 +3,16 @@
 <a href="url"><img src="./dataset/misc/MPC_logo.jpg" align="left" height="150" width="130" ></a>
 
 # MPC
-### Benchmark datasets of molecular property cliff (MPC) in [ACANet](https://github.com/shenwanxiang/ACANet) paper
+## Benchmark datasets of molecular property cliff (MPC) in [ACANet](https://github.com/shenwanxiang/ACANet) paper
 
 ------
-## Overview of the MPC benchmark datasets 
+### Overview of the MPC benchmark datasets 
 
 <a href="url"><img src="./dataset/misc/dataset_overview.jpg" align="center" height="515" width="707" ></a>
 
 
 
-## 1. The 9 datasets of low sample size and narrow scaffolds (LSSNS) for molecular activity prediction [LSSNS](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/LSSNS.html)
+### 1. The 9 datasets of low sample size and narrow scaffolds (LSSNS) for molecular activity prediction [LSSNS](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/LSSNS.html)
 
 | Idx | dataset   | target                                  | target_type   |   size | reference                                   |
 |---:|:----------|:----------------------------------------|:--------------|-------:|:--------------------------------------------|
@@ -66,7 +66,7 @@
 
 
 
-## 3. The 3 matched molecular pair (MMP) datasets of activity cliff classification. Datasets are from [ACGCN](https://github.com/chunkyun/ACGCN) 
+### 3. The 3 matched molecular pair (MMP) datasets of activity cliff classification. Datasets are from [ACGCN](https://github.com/chunkyun/ACGCN) 
 | Dataset                 | Total Compounds | Total MMPs | MMP-Cliffs | MMP-nonCliffs |
 |-------------------------|-----------------|------------|------------|---------------|
 | Thrombin                | 3171            | 5751       | 317        | 4408          |
@@ -75,7 +75,7 @@
 
 
 
-## 4. The 10 datasets of ADMET properties in delta prediction. Datasets are from [DeepDelta](https://github.com/RekerLab/DeepDelta) 
+### 4. The 10 datasets of ADMET properties in delta prediction. Datasets are from [DeepDelta](https://github.com/RekerLab/DeepDelta) 
 
 | Dataset                               | Property     | Size | Units                                      |
 |---------------------------------------|--------------|------|--------------------------------------------|
