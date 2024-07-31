@@ -67,6 +67,11 @@
 
 
 ## 3. The 3 matched molecular pair (MMP) datasets of activity cliff classification. Datasets are from [ACGCN](https://github.com/chunkyun/ACGCN) 
+| Dataset                 | Total Compounds | Total MMPs | MMP-Cliffs | MMP-nonCliffs |
+|-------------------------|-----------------|------------|------------|---------------|
+| Thrombin                | 3171            | 5751       | 317        | 4408          |
+| Mu opioid receptor      | 3625            | 8725       | 219        | 7097          |
+| Melanocortin receptor 4 | 1858            | 7169       | 111        | 5750          |
 
 
 
