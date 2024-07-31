@@ -12,7 +12,7 @@
 
 
 
-## 1.Low-sample size and narrow-scaffold inhibitors: [LSSNS](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/LSSNS.html)
+## 1. The 9 datasets of low sample size and narrow scaffolds (LSSNS) for molecular activity prediction [LSSNS](https://bidd-group.github.io/MPCD/dataset/LSSNS/info/LSSNS.html)
 
 | Idx | dataset   | target                                  | target_type   |   size | reference                                   |
 |---:|:----------|:----------------------------------------|:--------------|-------:|:--------------------------------------------|
@@ -29,7 +29,7 @@
 
 
 
-## 2.Higher-sample size and mixed-scaffold inhibitors:HSSMS
+## 2.The 30 datasets of high sample size and mixed scaffolds (HSSMS) for molecular activity prediction. Datasets are the molecular activity prediction benchmark datasets that from [MoleculeACE](https://github.com/molML/MoleculeACE) 
 
 | Idx | Dataset          | Code   | Target                                           | Type | Target\_type | Compounds | Cliffs |
 | --- | ---------------- | ------ | ------------------------------------------------ | ---- | ------------ | --------- | ------ |
@@ -66,13 +66,11 @@
 
 
 
-## 3. Matched Molecular Pair(MMP) datasets
+## 3. The 3 matched molecular pair (MMP) datasets of activity cliff classification. Datasets are from [ACGCN](https://github.com/chunkyun/ACGCN) 
 
 
 
-
-
-## 4. ADMET datasets
+## 4. The 10 datasets of ADMET properties in delta prediction. Datasets are from [DeepDelta](https://github.com/RekerLab/DeepDelta) 
 
 
 
