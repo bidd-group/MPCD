@@ -3,7 +3,7 @@
 <a href="url"><img src="./dataset/misc/MPC_logo.jpg" align="left" height="150" width="130" ></a>
 
 # MPC
-### Benchmark datasets of molecular property cliff (MPC) in [ACANet](https://github.com/shenwanxiang/bidd-clsar) paper
+### Benchmark datasets of molecular property cliff (MPC) in [ACANet](https://github.com/shenwanxiang/ACANet) paper
 
 ------
 ## Overview of the MPC benchmark datasets 
