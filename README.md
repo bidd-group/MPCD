@@ -77,17 +77,17 @@
 
 ## 4. The 10 datasets of ADMET properties in delta prediction. Datasets are from [DeepDelta](https://github.com/RekerLab/DeepDelta) 
 
-| Property     | Dataset                                    | Size | Units                                                |
-|--------------|--------------------------------------------|------|------------------------------------------------------|
-| Absorption   | Free Solvation                             | 642  | Experimental Hydration Free Energy in Water          |
-|              | Caco2                                      | 910  | Log(Papp)                                            |
-|              | Aqueous Solubility                         | 1128 | LogS                                                 |
-| Distribution | Fraction Unbound, Brain                    | 253  | Log(fu.brain)                                        |
-|              | Volume of Distribution at Steady State     | 1130 | Log(Body/Blood Concentration in L/kg)                |
-| Excretion    | Renal Clearance                            | 636  | Log(CLr)                                             |
-| Metabolism   | Microsomal Clearance                       | 731  | Log(mL/min/kg cleared)                               |
-|              | Hepatic Clearance                          | 881  | Log(mL/min/kg cleared)                               |
-|              | Half-Life                                  | 1321 | Log(Half-Life in Hours)                              |
-| Toxicity     | Hemolytic Toxicity                         | 828  | Log(HD50)                                            |
+| Dataset                               | Property     | Size | Units                                      |
+|---------------------------------------|--------------|------|--------------------------------------------|
+| Free Solvation                        | Absorption   | 642  | Experimental Hydration Free Energy in Water |
+| Caco2                                 | Absorption   | 910  | Log(Papp)                                  |
+| Aqueous Solubility                    | Absorption   | 1128 | LogS                                       |
+| Fraction Unbound, Brain               | Distribution | 253  | Log(fu,brain)                              |
+| Volume of Distribution at Steady State| Distribution | 1130 | Log(Body/Blood Concentration in L/kg)      |
+| Renal Clearance                       | Excretion    | 636  | Log(CLr)                                   |
+| Microsomal Clearance                  | Metabolism   | 731  | Log(mL/min/kg cleared)                     |
+| Hepatic Clearance                     | Metabolism   | 881  | Log(mL/min/kg cleared)                     |
+| Half-Life                             | Metabolism   | 1321 | Log(Half-Life in Hours)                    |
+| Hemolytic Toxicity                    | Toxicity     | 828  | Log(HD50)                                  |
 
 
