@@ -8,7 +8,7 @@
 ------
 ## Overview of the MPC benchmark datasets 
 
-<a href="url"><img src="./dataset/misc/dataset_overview.jpg" align="center" height="150" width="150" ></a>
+<a href="url"><img src="./dataset/misc/dataset_overview.jpg" align="center" height="500" width="500" ></a>
 
 
 
